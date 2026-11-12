@@ -394,7 +394,7 @@ input:focus,select:focus{border-color:var(--pri2);background:#fff;box-shadow:0 0
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script>
 /* ======== VERSIYA (har yangilanishda version.json bilan birga oshiriladi) ======== */
-const APP_V='2026.11.12-14';
+const APP_V='2026.11.12-15';
 
 const TURLAR=['OYLIK','XIMIYA','REMONT / EHTIYOT QISM','QARZ TOLOV','ARENDA','APARAT TOLOV','SVET','OBED','BOSHQA','BOLINMAGAN'];
 const TCOL={'OYLIK':'#dbeafe','XIMIYA':'#dcfce7','REMONT / EHTIYOT QISM':'#ffedd5','QARZ TOLOV':'#fee2e2','ARENDA':'#ede9fe','APARAT TOLOV':'#f3e8ff','SVET':'#fef9c3','OBED':'#f1f5f9','BOSHQA':'#e2e8f0','BOLINMAGAN':'#e5e7eb'};
@@ -678,6 +678,15 @@ function shCalc(sh){
 const two=(o,neg)=>{const p=[];if(o.uzs)p.push(fmt(o.uzs)+" so'm");if(o.usd)p.push(`<span style="color:#0a7a4f">${fmtU(o.usd)}</span>`);return p.join('<br>')||'0';};
 function renderSherik(){
   const box=$('shBox'); if(!box) return;
+  const keep={}; box.querySelectorAll('input[id],select[id]').forEach(e=>keep[e.id]=e.type==='checkbox'?e.checked:e.value);
+  const foc=document.activeElement&&box.contains(document.activeElement)?document.activeElement.id:null;
+  _renderSherik(box);
+  Object.entries(keep).forEach(([id,v])=>{const e=$(id); if(!e) return; if(e.type==='checkbox') e.checked=v; else if(v!==''&&(e.tagName!=='SELECT'||[...e.options].some(o=>o.value===v))) e.value=v;});
+  ['sqoV','sqtV','sspV'].forEach(id=>{const e=$(id); if(!e) return; if(!(id in keep)){try{const m=localStorage.getItem('mm_v_'+id); if(m) e.value=m}catch(x){}} e.addEventListener('change',()=>{try{localStorage.setItem('mm_v_'+id,e.value)}catch(x){}});});
+  if($('sqtKW')&&$('sqtV')&&$('sqtR')) $('sqtKW').classList.toggle('hide',$('sqtV').value!=='usd'||!$('sqtR').checked);
+  if(foc&&$(foc)) $(foc).focus({preventScroll:true});
+}
+function _renderSherik(box){
   const sh=D.sher||[];
   if(!shSel||!sh.some(x=>x.ism===shSel)){shSel=null;
     box.innerHTML=`<h3>👤 Sheriklar qarzi <span class="sub">tanish-bilishlardan olingan qarzlar</span></h3>
@@ -746,7 +755,8 @@ async function shSave(e,turi){e.preventDefault();
     let somm=sm, k=null; if(v==='usd'){k=+$('sqtKurs').value||0; if(!(k>0)) return toast('Kursni kiriting'); somm=Math.round(sm*k); try{localStorage.setItem('mm_kurs',String(k))}catch(e){}}
     const {data,error}=await sb.from('rasxod').insert({sana:row.sana,summa:somm,turi:'QARZ TOLOV',kimga:row.xaqdor,summa_usd:v==='usd'?sm:null,kurs:k,izoh:`${shSel} qarzi${v==='usd'?` · ${fmtU(sm)} × ${fmt(k)}`:''}${row.izoh?' · '+row.izoh:''}`}).select('id').single();
     if(error) return err(error); row.rasxod_id=data.id; row.kurs=k;}
-  if(await run(sb.from('sherik_qarz').insert(row),turi==='qarz'?'Qarz yozildi':turi==='tolov'?'Qarz berildi':'Yozildi')){}
+  if(await run(sb.from('sherik_qarz').insert(row),turi==='qarz'?'Qarz yozildi':turi==='tolov'?'Qarz berildi':'Yozildi')){
+    [P+'Sum',P+'Iz',...(turi==='qarz'?['sqoX']:[])].forEach(id=>{if($(id))$(id).value=''}); if(turi==='tolov'&&$('sqtR')){$('sqtR').checked=false;$('sqtKW').classList.add('hide')}}
 }
 async function shDel(id){const r=(D.shq||[]).find(x=>x.id===id); if(!r) return;
   if(!await ask("O'chirilsinmi?"+(r.rasxod_id?' (rasxoddagi yozuvi ham o\'chadi)':''))) return;
@@ -768,12 +778,14 @@ async function editQo(id){const q=D.qarzOl.find(x=>x.id===id); if(!q) return; co
   const nu=v.val==='usd', sm=nu?Math.round((+v.sum||0)*100)/100:Math.round((+v.sum||0)*K); if(!(sm>0)) return toast("Summa noto'g'ri");
   run(sb.from('qarz_olingan').update({sana:v.sana,kim:v.kim,nima:v.nima||null,valyuta:nu?'usd':'uzs',summa:sm}).eq('id',id),'Saqlandi')}
 async function editSq(id){const r=(D.shq||[]).find(x=>x.id===id); if(!r) return; const u=r.valyuta==='usd';
-  const f=[{k:'sana',l:'Sana',t:'date',v:r.sana}]; if(r.turi!=='shaxsiy') f.push({k:'xaqdor',l:'Haqdor',v:r.xaqdor||''});
+  const f=[{k:'turi',l:'Turi',t:'sel',o:[['qarz','🔴 Qarz olindi'],['tolov','🟢 Qarz berildi'],['shaxsiy','💼 Shaxsiy pul']],v:r.turi},{k:'sana',l:'Sana',t:'date',v:r.sana},{k:'xaqdor',l:'Haqdor (shaxsiy pulda kerak emas)',v:r.xaqdor||''}];
   f.push({k:'val',l:'Valyuta',t:'sel',o:VAL,v:r.valyuta},{k:'sum',l:'Summa',t:'num',v:u?+r.summa:kv(r.summa)},{k:'izoh',l:'Izoh',v:r.izoh||''});
   if(r.rasxod_id&&u) f.push({k:'kurs',l:"Kurs (1$ = so'm)",t:'num',v:r.kurs||''});
   const v=await form2('✎ '+r.sherik,f); if(!v) return;
   const nu=v.val==='usd', sm=nu?Math.round((+v.sum||0)*100)/100:Math.round((+v.sum||0)*K); if(!(sm>0)) return toast("Summa noto'g'ri");
-  const row={sana:v.sana,valyuta:nu?'usd':'uzs',summa:sm,izoh:v.izoh||null}; if(r.turi!=='shaxsiy') row.xaqdor=up(v.xaqdor||'')||r.xaqdor;
+  const tu=v.turi||r.turi; if(r.rasxod_id&&tu!==r.turi) return toast("Bu yozuv rasxodga bog'langan — turini o'zgartirib bo'lmaydi, o'chirib qayta yozing");
+  const row={turi:tu,sana:v.sana,valyuta:nu?'usd':'uzs',summa:sm,izoh:v.izoh||null,xaqdor:tu==='shaxsiy'?null:(up(v.xaqdor||'')||r.xaqdor||null)};
+  if(tu!=='shaxsiy'&&!row.xaqdor) return toast('Haqdor ismini kiriting');
   if(r.rasxod_id){const k=nu?(+v.kurs||+r.kurs||0):null; if(nu&&!(k>0)) return toast('Kursni kiriting'); row.kurs=k;
     const {error}=await sb.from('rasxod').update({sana:v.sana,summa:nu?Math.round(sm*k):sm,summa_usd:nu?sm:null,kurs:k,kimga:row.xaqdor||r.xaqdor}).eq('id',r.rasxod_id); if(error) return err(error);}
   run(sb.from('sherik_qarz').update(row).eq('id',id),'Saqlandi')}
