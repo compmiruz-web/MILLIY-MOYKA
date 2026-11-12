@@ -84,6 +84,17 @@ main{max-width:1180px;margin:0 auto;padding:16px}
 .stat .l{color:var(--mut);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.4px}
 .stat .v{font-size:24px;font-weight:800;margin-top:2px;letter-spacing:-.3px}
 .stat .d{font-size:12px;font-weight:600;margin-top:2px}
+.g4>*{min-width:0}.stat>div{min-width:0}
+@media(max-width:1000px){.g4{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){
+  .g4{gap:10px}
+  .g4 .card{padding:12px}
+  .stat{gap:8px;align-items:flex-start}
+  .stat .ic{width:32px;height:32px;border-radius:10px;font-size:16px}
+  .stat .l{font-size:10px;letter-spacing:.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .stat .v{font-size:clamp(15px,4.6vw,20px);white-space:nowrap}
+  .stat .d{font-size:11px}
+}
 .ic.b{background:#e6f1ff;color:var(--pri)}.ic.r{background:#ffecec;color:var(--bad)}.ic.g{background:#e3f8ef;color:var(--ok)}.ic.y{background:#fff4dc;color:#b7791f}
 .pos{color:var(--ok)}.neg{color:var(--bad)}
 
@@ -350,7 +361,7 @@ input:focus,select:focus{border-color:var(--pri2);background:#fff;box-shadow:0 0
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script>
 /* ======== VERSIYA (har yangilanishda version.json bilan birga oshiriladi) ======== */
-const APP_V='2026.11.12-7';
+const APP_V='2026.11.12-8';
 
 const TURLAR=['OYLIK','XIMIYA','REMONT / EHTIYOT QISM','QARZ TOLOV','ARENDA','APARAT TOLOV','SVET','OBED','BOSHQA','BOLINMAGAN'];
 const TCOL={'OYLIK':'#dbeafe','XIMIYA':'#dcfce7','REMONT / EHTIYOT QISM':'#ffedd5','QARZ TOLOV':'#fee2e2','ARENDA':'#ede9fe','APARAT TOLOV':'#f3e8ff','SVET':'#fef9c3','OBED':'#f1f5f9','BOSHQA':'#e2e8f0','BOLINMAGAN':'#e5e7eb'};
