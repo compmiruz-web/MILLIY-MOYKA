@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b5ed7">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Crystal Wash">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" href="icon-192.png">
+<title>CRYSTAL WASH SAM MOYKA</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--bg:#f2f5fa;--card:#fff;--ink:#14213d;--mut:#6b7a90;--line:#e3e8f0;--pri:#0b5ed7;--ok:#139a5b;--bad:#d63939;--warn:#e8a317;--r:12px}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
+header{position:sticky;top:0;z-index:20;background:linear-gradient(135deg,#0b5ed7,#0aa2c0);color:#fff;padding:calc(env(safe-area-inset-top) + 8px) 12px 10px}
+.top{display:flex;align-items:center;gap:8px}
+.brand{font-weight:800;font-size:16px;letter-spacing:.5px;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.brand small{display:block;font-weight:500;font-size:11px;opacity:.85;letter-spacing:1px}
+#exsonBtn{background:#139a5b;color:#fff;border:0;border-radius:20px;padding:7px 12px;font-weight:700;font-size:13px;white-space:nowrap}
+.mon{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:8px}
+.mon button{background:rgba(255,255,255,.2);border:0;color:#fff;width:38px;height:34px;border-radius:10px;font-size:16px}
+.mon select{background:rgba(255,255,255,.95);color:var(--ink);border:0;border-radius:10px;height:34px;padding:0 10px;font-weight:800;font-size:15px;text-align:center;-webkit-appearance:none;appearance:none;min-width:170px}
+main{padding:12px 12px calc(84px + env(safe-area-inset-bottom));max-width:980px;margin:0 auto}
+nav{position:fixed;left:0;right:0;bottom:0;z-index:20;background:#fff;border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(6,1fr);padding-bottom:env(safe-area-inset-bottom)}
+nav button{background:none;border:0;padding:7px 2px 8px;font-size:11px;color:var(--mut);display:flex;flex-direction:column;align-items:center;gap:2px}
+nav button b{font-size:19px;line-height:1}
+nav button.on{color:var(--pri);font-weight:700}
+.card{background:var(--card);border-radius:var(--r);padding:12px;margin-bottom:12px;box-shadow:0 1px 3px rgba(20,33,61,.06)}
+.card h3{margin:0 0 10px;font-size:15px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+@media(max-width:640px){.stats{grid-template-columns:repeat(2,1fr)}}
+.st{background:#fff;border-radius:var(--r);padding:10px;box-shadow:0 1px 3px rgba(20,33,61,.06);min-width:0}
+.st span{display:block;font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.4px}
+.st b{display:block;font-size:17px;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.st.g b{color:var(--ok)}.st.r b{color:var(--bad)}.st.b b{color:var(--pri)}.st.y b{color:#b07b00}
+.frm{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;align-items:start}
+.frm label{display:flex;flex-direction:column;font-size:12px;color:var(--mut);gap:3px;min-width:0}
+input,select,textarea{font:inherit;color:var(--ink);background:#fff;border:1px solid #cfd8e5;border-radius:10px;height:42px;padding:0 10px;width:100%;min-width:0;display:block;-webkit-appearance:none;appearance:none;margin:0}
+input[type=date]{line-height:40px;text-align:left}
+input[type=date]::-webkit-date-and-time-value{text-align:left}
+select{background-image:linear-gradient(45deg,transparent 50%,#6b7a90 50%),linear-gradient(135deg,#6b7a90 50%,transparent 50%);background-position:calc(100% - 15px) 18px,calc(100% - 10px) 18px;background-size:5px 5px;background-repeat:no-repeat;padding-right:26px}
+input:focus,select:focus{outline:2px solid #9ec5fe;border-color:var(--pri)}
+.btn{height:42px;border:0;border-radius:10px;background:var(--pri);color:#fff;font-weight:700;padding:0 14px;font-size:15px;white-space:nowrap}
+.btn.ok{background:var(--ok)}.btn.bad{background:var(--bad)}.btn.gh{background:#e9eef6;color:var(--ink)}
+.btn.sm{height:32px;font-size:13px;padding:0 10px}
+.hint{font-size:12px;color:var(--mut);margin-top:6px}
+.tw{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -12px;padding:0 12px}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{padding:8px 6px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
+th{font-size:11px;color:var(--mut);text-transform:uppercase;font-weight:700;background:#f7f9fc;position:sticky;top:0}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+td.wrap{white-space:normal;min-width:120px}
+tr.tot td{font-weight:800;background:#f7f9fc}
+.ic{background:none;border:0;font-size:16px;padding:2px 5px;cursor:pointer}
+.tag{display:inline-block;font-size:11px;font-weight:700;padding:2px 7px;border-radius:8px;background:#e9eef6;color:#38506f}
+.pos{color:var(--ok)}.neg{color:var(--bad)}
+.empty{color:var(--mut);text-align:center;padding:18px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.sp{flex:1}
+#modal{position:fixed;inset:0;background:rgba(10,20,40,.45);z-index:50;display:none;align-items:flex-end;justify-content:center}
+#modal.on{display:flex}
+#mbox{background:#fff;width:100%;max-width:640px;max-height:90vh;overflow:auto;border-radius:16px 16px 0 0;padding:14px 14px calc(14px + env(safe-area-inset-bottom))}
+@media(min-width:700px){#modal{align-items:center}#mbox{border-radius:16px}}
+#mbox h3{margin:0 0 10px;display:flex;align-items:center}
+#banner,#upd{display:none;padding:10px 12px;font-weight:700;text-align:center}
+#banner{background:#fff3cd;color:#7a5600}
+#upd{position:fixed;left:12px;right:12px;bottom:calc(76px + env(safe-area-inset-bottom));z-index:40;background:#14213d;color:#fff;border-radius:12px;box-shadow:0 6px 20px rgba(0,0,0,.25)}
+#toast{position:fixed;left:50%;top:calc(env(safe-area-inset-top) + 70px);transform:translateX(-50%);background:#14213d;color:#fff;padding:9px 14px;border-radius:10px;z-index:60;display:none;font-size:14px}
+.sec{display:none}.sec.on{display:block}
+</style>
+</head>
+<body>
+<header>
+  <div class="top">
+    <div class="brand">CRYSTAL WASH<small>SAM MOYKA · XISOB-KITOB</small></div>
+    <button id="exsonBtn" onclick="go('exson')">🤲 0</button>
+  </div>
+  <div class="mon">
+    <button onclick="shiftMonth(-1)">◀</button>
+    <select id="monSel" onchange="setMonth(this.value)"></select>
+    <button onclick="shiftMonth(1)">▶</button>
+  </div>
+</header>
+<div id="banner"></div>
+<main>
+  <section class="sec" id="s-xisobot"></section>
+  <section class="sec" id="s-tushum"></section>
+  <section class="sec" id="s-rasxod"></section>
+  <section class="sec" id="s-qarz"></section>
+  <section class="sec" id="s-oylik"></section>
+  <section class="sec" id="s-exson"></section>
+</main>
+<nav id="nav">
+  <button data-s="xisobot"><b>📊</b>Xisobot</button>
+  <button data-s="tushum"><b>💰</b>Tushum</button>
+  <button data-s="rasxod"><b>🧾</b>Rasxod</button>
+  <button data-s="qarz"><b>📒</b>Qarzlar</button>
+  <button data-s="oylik"><b>👷</b>Oylik</button>
+  <button data-s="exson"><b>🤲</b>Exson</button>
+</nav>
+<div id="modal" onclick="if(event.target===this)closeM()"><div id="mbox"></div></div>
+<div id="upd" onclick="doUpdate()">🔔 Yangilanish keldi — bosing</div>
+<div id="toast"></div>
+
+<script>
+// ===== SOZLAMA =====
+const APP_V = 1;
+const SB_URL = 'https://scozfycitumfftdpuphd.supabase.co';
+const SB_KEY = 'sb_publishable_eD7JfcPrq6TMus9Vm6vKRQ_uWDyuQ62';
+const PFX = 'cw_'; // CRYSTAL WASH jadvallari (MILLIY-MOYKA bilan aralashmaydi)
+
+const OYLAR = ['YANVAR','FEVRAL','MART','APREL','MAY','IYUN','IYUL','AVGUST','SENTABR','OKTABR','NOYABR','DEKABR'];
+const TURLAR = ['OYLIK','XIMIYA','REMONT / EHTIYOT QISM','QARZ TOLOV','ARENDA','APARAT TOLOV','SVET','OBED','BOSHQA'];
+
+let sb = null;
+const D = {tushum:[],rasxod:[],yetkazuvchilar:[],qarz_olingan:[],xodimlar:[],exson_berildi:[],sozlamalar:[]};
+let MON = ym(new Date());
+let SEC = localStorage.getItem('cw_sec') || 'xisobot';
+
+// ===== YORDAMCHI =====
+function ym(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')}
+function today(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function defDate(){const t=today();return t.slice(0,7)===MON?t:MON+'-01'}
+function monName(m){const [y,mm]=m.split('-');return OYLAR[+mm-1]+' '+y}
+function fmt(n){n=Math.round(+n||0);const s=Math.abs(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g,' ');return (n<0?'−':'')+s}
+function k2s(v){ // ming so'm -> so'm
+  if(v==null)return NaN; v=String(v).replace(/\s/g,'').replace(',','.'); if(v==='')return NaN;
+  const n=Number(v); return isFinite(n)?Math.round(n*1000):NaN}
+function s2k(n){const k=(+n||0)/1000;return Number.isInteger(k)?String(k):String(+k.toFixed(3))}
+function dmy(s){if(!s)return '';const [y,m,d]=s.split('-');return d+'.'+m+'.'+y}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function norm(s){return String(s||'').trim().toUpperCase().replace(/\s+/g,' ')}
+function sum(a,f='summa'){return a.reduce((t,x)=>t+(+x[f]||0),0)}
+function inMon(a){return a.filter(x=>x.sana&&x.sana.slice(0,7)===MON)}
+function toast(t){const e=document.getElementById('toast');e.textContent=t;e.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>e.style.display='none',1800)}
+function $(id){return document.getElementById(id)}
+function val(id){return $(id).value}
+function exsonFoiz(){const s=D.sozlamalar.find(x=>x.kalit==='exson_foiz');return s?(+s.qiymat||5):5}
+
+// ===== BAZA =====
+async function loadAll(){
+  if(!sb)return;
+  const names=Object.keys(D);
+  const res=await Promise.all(names.map(n=>{
+    let q=tb(n).select('*');
+    if(n!=='sozlamalar')q=q.order('id',{ascending:true});
+    return q.range(0,9999);
+  }));
+  let err=null;
+  res.forEach((r,i)=>{if(r.error)err=r.error;else D[names[i]]=r.data||[]});
+  if(err){showBanner('Bazaga ulanishda xato: '+err.message);}
+  else $('banner').style.display='none';
+  render();
+}
+let reloadT;function softReload(){clearTimeout(reloadT);reloadT=setTimeout(loadAll,400)}
+async function ins(t,row){const {error}=await tb(t).insert(row);if(error){alert('Xato: '+error.message);return false}toast('✅ Saqlandi');await loadAll();return true}
+async function upd(t,id,row){const {error}=await tb(t).update(row).eq('id',id);if(error){alert('Xato: '+error.message);return false}toast('✅ O\'zgartirildi');await loadAll();return true}
+async function del(t,id,msg){if(!confirm(msg||'O\'chirilsinmi?'))return;const {error}=await tb(t).delete().eq('id',id);if(error){alert('Xato: '+error.message);return}toast('🗑 O\'chirildi');await loadAll();if($('modal').classList.contains('on')&&reopen)reopen()}
+function tb(t){return sb.from(PFX+t)}
+function showBanner(t){const b=$('banner');b.textContent=t;b.style.display='block'}
+
+// ===== OY TANLASH =====
+function monthList(){
+  const set=new Set([ym(new Date()),MON]);
+  ['tushum','rasxod','qarz_olingan','exson_berildi'].forEach(t=>D[t].forEach(x=>x.sana&&set.add(x.sana.slice(0,7))));
+  return [...set].sort().reverse();
+}
+function fillMonSel(){const s=$('monSel');s.innerHTML=monthList().map(m=>`<option value="${m}"${m===MON?' selected':''}>${monName(m)}</option>`).join('')}
+function setMonth(m){MON=m;render()}
+function shiftMonth(k){const [y,m]=MON.split('-').map(Number);const d=new Date(y,m-1+k,1);MON=ym(d);render()}
+
+// ===== NAVIGATSIYA =====
+function go(s){SEC=s;localStorage.setItem('cw_sec',s);render();window.scrollTo(0,0)}
+document.querySelectorAll('#nav button').forEach(b=>b.onclick=()=>go(b.dataset.s));
+
+// ===== HISOB =====
+function monthProfit(m){
+  const t=sum(D.tushum.filter(x=>x.sana.slice(0,7)===m)), r=sum(D.rasxod.filter(x=>x.sana.slice(0,7)===m));
+  return {t,r,f:t-r,e:Math.max(0,t-r)*exsonFoiz()/100};
+}
+function exsonAll(){
+  const ms=new Set();D.tushum.forEach(x=>ms.add(x.sana.slice(0,7)));D.rasxod.forEach(x=>ms.add(x.sana.slice(0,7)));
+  let due=0;const rows=[...ms].sort().map(m=>{const p=monthProfit(m);due+=p.e;return {m,...p}});
+  const given=sum(D.exson_berildi);
+  return {rows,due,given,qolgan:due-given};
+}
+function supplierStat(y){
+  const ol=D.qarz_olingan.filter(q=>q.yetkazuvchi_id===y.id);
+  const tol=D.rasxod.filter(r=>r.turi==='QARZ TOLOV'&&norm(r.kimga)===norm(y.nomi));
+  const a=sum(ol),b=sum(tol);return {ol,tol,a,b,q:a-b};
+}
+
+// ===== RENDER =====
+function render(){
+  fillMonSel();
+  document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.s===SEC));
+  document.querySelectorAll('.sec').forEach(s=>s.classList.toggle('on',s.id==='s-'+SEC));
+  const ex=exsonAll();$('exsonBtn').textContent='🤲 '+fmt(Math.max(0,ex.qolgan));
+  const f={xisobot:rXisobot,tushum:rTushum,rasxod:rRasxod,qarz:rQarz,oylik:rOylik,exson:rExson}[SEC];
+  keepForm(()=>f());
+}
+// avtomatik yangilanishda formaga yozilganlar o'chib ketmasin
+function keepForm(fn){
+  const saved={};document.querySelectorAll('main [data-keep]').forEach(e=>saved[e.id]=e.value);
+  const act=document.activeElement&&document.activeElement.id;
+  fn();
+  for(const id in saved){const e=$(id);if(e&&saved[id]!=='')e.value=saved[id]}
+  if(act&&$(act))try{$(act).focus()}catch(e){}
+}
+
+function rXisobot(){
+  const T=inMon(D.tushum),R=inMon(D.rasxod);
+  const t=sum(T),r=sum(R),f=t-r,e=Math.max(0,f)*exsonFoiz()/100;
+  const days={};T.forEach(x=>{(days[x.sana]??={t:0,r:0}).t+=+x.summa});R.forEach(x=>{(days[x.sana]??={t:0,r:0}).r+=+x.summa});
+  const ks=Object.keys(days).sort();let run=0;
+  const rows=ks.map(k=>{const d=days[k];run+=d.t-d.r;return `<tr><td>${dmy(k)}</td><td class="n">${fmt(d.t)}</td><td class="n">${fmt(d.r)}</td><td class="n ${d.t-d.r<0?'neg':''}">${fmt(d.t-d.r)}</td><td class="n ${run<0?'neg':''}">${fmt(run)}</td></tr>`}).join('');
+  const byT={};R.forEach(x=>byT[x.turi]=(byT[x.turi]||0)+ +x.summa);
+  const tRows=Object.entries(byT).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<tr><td>${esc(k)}</td><td class="n">${fmt(v)}</td><td class="n">${r?Math.round(v*100/r):0}%</td></tr>`).join('');
+  $('s-xisobot').innerHTML=`
+  <div class="stats">
+    <div class="st g"><span>Jami tushum</span><b>${fmt(t)}</b></div>
+    <div class="st r"><span>Jami rasxod</span><b>${fmt(r)}</b></div>
+    <div class="st b"><span>Sof foyda</span><b>${fmt(f)}</b></div>
+    <div class="st y"><span>Exson ${exsonFoiz()}%</span><b>${fmt(e)}</b></div>
+  </div>
+  <div class="card"><h3>${monName(MON)} — kunma-kun</h3><div class="tw"><table>
+    <tr><th>Sana</th><th class="n">Tushum</th><th class="n">Rasxod</th><th class="n">Kun qoldig'i</th><th class="n">Ostatka</th></tr>
+    ${rows||'<tr><td colspan="5" class="empty">Bu oyda yozuv yo\'q</td></tr>'}
+    ${rows?`<tr class="tot"><td>JAMI</td><td class="n">${fmt(t)}</td><td class="n">${fmt(r)}</td><td class="n">${fmt(f)}</td><td></td></tr>`:''}
+  </table></div></div>
+  ${tRows?`<div class="card"><h3>Rasxod turlari bo'yicha</h3><div class="tw"><table><tr><th>Turi</th><th class="n">Summa</th><th class="n">Ulush</th></tr>${tRows}</table></div></div>`:''}`;
+}
+
+function moneyInput(id,ph){return `<input id="${id}" data-keep inputmode="decimal" placeholder="${ph||'ming so\'mda'}" oninput="mHint(this)"><div class="hint" id="${id}_h">&nbsp;</div>`}
+function mHint(el){const h=$(el.id+'_h');if(!h)return;const n=k2s(el.value);h.textContent=isNaN(n)?' ':'= '+fmt(n)+' so\'m'}
+
+function rTushum(){
+  const T=inMon(D.tushum).slice().sort((a,b)=>b.sana.localeCompare(a.sana)||b.id-a.id);
+  $('s-tushum').innerHTML=`
+  <div class="card"><h3>💰 Tushum qo'shish</h3><div class="frm">
+    <label>Sana<input type="date" id="tSana" data-keep value="${defDate()}"></label>
+    <label>Summa (ming so'm)${moneyInput('tSum')}</label>
+    <label>Izoh<input id="tIzoh" data-keep placeholder="ixtiyoriy"><div class="hint">&nbsp;</div></label>
+    <label>&nbsp;<button class="btn ok" onclick="addTushum()">➕ Qo'shish</button><div class="hint">&nbsp;</div></label>
+  </div></div>
+  <div class="card"><div class="row"><h3 class="sp">${monName(MON)}</h3><b class="pos">${fmt(sum(T))}</b></div><div class="tw"><table>
+    <tr><th>Sana</th><th class="n">Summa</th><th>Izoh</th><th></th></tr>
+    ${T.map(x=>`<tr><td>${dmy(x.sana)}</td><td class="n">${fmt(x.summa)}</td><td class="wrap">${esc(x.izoh)}</td><td class="n"><button class="ic" onclick="editTushum(${x.id})">✎</button><button class="ic" onclick="del('tushum',${x.id})">🗑</button></td></tr>`).join('')||'<tr><td colspan="4" class="empty">Yozuv yo\'q</td></tr>'}
+  </table></div></div>`;
+}
+async function addTushum(){
+  const s=k2s(val('tSum'));if(!(s>0))return alert('Summani kiriting (ming so\'mda)');
+  if(!val('tSana'))return alert('Sanani tanlang');
+  if(await ins('tushum',{sana:val('tSana'),summa:s,izoh:val('tIzoh').trim()||null})){$('tSum').value='';$('tIzoh').value='';$('tSum_h').innerHTML='&nbsp;'}
+}
+
+function kimgaList(){return [...new Set([...D.xodimlar.map(x=>x.ism),...D.yetkazuvchilar.map(x=>x.nomi)])]}
+function rRasxod(){
+  const R=inMon(D.rasxod).slice().sort((a,b)=>b.sana.localeCompare(a.sana)||b.id-a.id);
+  $('s-rasxod').innerHTML=`
+  <div class="card"><h3>🧾 Rasxod qo'shish</h3><div class="frm">
+    <label>Sana<input type="date" id="rSana" data-keep value="${defDate()}"></label>
+    <label>Summa (ming so'm)${moneyInput('rSum')}</label>
+    <label>Turi<select id="rTur" data-keep>${TURLAR.map(t=>`<option>${t}</option>`).join('')}</select><div class="hint">&nbsp;</div></label>
+    <label>Kimga<input id="rKim" data-keep list="kimL" placeholder="ixtiyoriy" autocomplete="off"><div class="hint">&nbsp;</div></label>
+    <label>Izoh<input id="rIzoh" data-keep placeholder="ixtiyoriy"><div class="hint">&nbsp;</div></label>
+    <label>&nbsp;<button class="btn bad" onclick="addRasxod()">➕ Qo'shish</button><div class="hint">&nbsp;</div></label>
+  </div><datalist id="kimL">${kimgaList().map(k=>`<option value="${esc(k)}">`).join('')}</datalist></div>
+  <div class="card"><div class="row"><h3 class="sp">${monName(MON)}</h3><b class="neg">${fmt(sum(R))}</b></div><div class="tw"><table>
+    <tr><th>Sana</th><th class="n">Summa</th><th>Turi</th><th>Kimga</th><th>Izoh</th><th></th></tr>
+    ${R.map(x=>`<tr><td>${dmy(x.sana)}</td><td class="n">${fmt(x.summa)}</td><td><span class="tag">${esc(x.turi)}</span></td><td>${esc(x.kimga)}</td><td class="wrap">${esc(x.izoh)}</td><td class="n"><button class="ic" onclick="editRasxod(${x.id})">✎</button><button class="ic" onclick="del('rasxod',${x.id})">🗑</button></td></tr>`).join('')||'<tr><td colspan="6" class="empty">Yozuv yo\'q</td></tr>'}
+  </table></div></div>`;
+}
+async function addRasxod(){
+  const s=k2s(val('rSum'));if(!(s>0))return alert('Summani kiriting (ming so\'mda)');
+  if(!val('rSana'))return alert('Sanani tanlang');
+  if(await ins('rasxod',{sana:val('rSana'),summa:s,turi:val('rTur'),kimga:val('rKim').trim()||null,izoh:val('rIzoh').trim()||null})){
+    ['rSum','rKim','rIzoh'].forEach(i=>$(i).value='');$('rSum_h').innerHTML='&nbsp;'}
+}
+
+// ===== QARZLAR =====
+function rQarz(){
+  const ys=D.yetkazuvchilar.map(y=>({y,...supplierStat(y)})).sort((a,b)=>b.q-a.q);
+  const tq=ys.reduce((t,x)=>t+x.q,0);
+  $('s-qarz').innerHTML=`
+  <div class="stats"><div class="st r"><span>Jami qarz qoldig'i</span><b>${fmt(tq)}</b></div><div class="st"><span>Yetkazuvchilar</span><b>${ys.length}</b></div></div>
+  <div class="card"><h3>➕ Yangi yetkazuvchi</h3><div class="frm">
+    <label>Nomi<input id="yNom" data-keep placeholder="masalan: XIMIYA AKMAL"></label>
+    <label>Telefon<input id="yTel" data-keep inputmode="tel" placeholder="ixtiyoriy"></label>
+    <label>&nbsp;<button class="btn" onclick="addYet()">➕ Qo'shish</button></label>
+  </div></div>
+  <div class="card"><h3>📒 Qarzga olingan ximiya / ehtiyot qismlar</h3><div class="tw"><table>
+    <tr><th>Yetkazuvchi</th><th class="n">Olingan</th><th class="n">To'langan</th><th class="n">Qoldiq</th><th></th></tr>
+    ${ys.map(x=>`<tr onclick="openYet(${x.y.id})" style="cursor:pointer"><td><b>${esc(x.y.nomi)}</b>${x.y.tel?`<br><small>${esc(x.y.tel)}</small>`:''}</td><td class="n">${fmt(x.a)}</td><td class="n">${fmt(x.b)}</td><td class="n ${x.q>0?'neg':'pos'}"><b>${fmt(x.q)}</b></td><td>›</td></tr>`).join('')||'<tr><td colspan="5" class="empty">Yetkazuvchi qo\'shilmagan</td></tr>'}
+  </table></div><div class="hint">Qarz to'lovi Rasxodga "QARZ TOLOV" turi bilan, Kimga = yetkazuvchi nomi bo'lib yoziladi va qarzdan ayiriladi.</div></div>`;
+}
+async function addYet(){
+  const n=norm(val('yNom'));if(!n)return alert('Nomini yozing');
+  if(D.yetkazuvchilar.some(y=>norm(y.nomi)===n))return alert('Bu nom bor');
+  if(await ins('yetkazuvchilar',{nomi:n,tel:val('yTel').trim()||null})){$('yNom').value='';$('yTel').value=''}
+}
+let reopen=null;
+function openYet(id){
+  const y=D.yetkazuvchilar.find(v=>v.id===id);if(!y)return closeM();
+  reopen=()=>openYet(id);
+  const s=supplierStat(y);
+  const ol=s.ol.slice().sort((a,b)=>b.sana.localeCompare(a.sana));
+  const tl=s.tol.slice().sort((a,b)=>b.sana.localeCompare(a.sana));
+  openM(`<h3><span class="sp">📒 ${esc(y.nomi)}</span><button class="ic" onclick="closeM()">✕</button></h3>
+  <div class="stats"><div class="st"><span>Olingan</span><b>${fmt(s.a)}</b></div><div class="st g"><span>To'langan</span><b>${fmt(s.b)}</b></div><div class="st r"><span>Qoldiq</span><b>${fmt(s.q)}</b></div></div>
+  <div class="card" style="background:#f7f9fc"><h3>🔴 Qarzga mol olindi</h3><div class="frm">
+    <label>Sana<input type="date" id="qSana" value="${defDate()}"></label>
+    <label>Nima<input id="qNima" placeholder="masalan: ximiya 2 kanistr"></label>
+    <label>Summa (ming so'm)${moneyInput('qSum')}</label>
+    <label>&nbsp;<button class="btn bad" onclick="addQarz(${id})">➕ Yozish</button><div class="hint">&nbsp;</div></label>
+  </div></div>
+  <div class="card" style="background:#f7f9fc"><h3>🟢 Qarz to'lash</h3><div class="frm">
+    <label>Sana<input type="date" id="pSana" value="${defDate()}"></label>
+    <label>Summa (ming so'm)${moneyInput('pSum')}</label>
+    <label>&nbsp;<button class="btn ok" onclick="payQarz(${id})">💸 To'lash</button><div class="hint">&nbsp;</div></label>
+  </div><div class="hint">To'lov Rasxodga "QARZ TOLOV" bo'lib tushadi.</div></div>
+  <h3>Olingan mollar</h3><div class="tw"><table><tr><th>Sana</th><th>Nima</th><th class="n">Summa</th><th></th></tr>
+  ${ol.map(q=>`<tr><td>${dmy(q.sana)}</td><td class="wrap">${esc(q.nima)}</td><td class="n">${fmt(q.summa)}</td><td class="n"><button class="ic" onclick="editQarz(${q.id})">✎</button><button class="ic" onclick="del('qarz_olingan',${q.id})">🗑</button></td></tr>`).join('')||'<tr><td colspan="4" class="empty">Yo\'q</td></tr>'}</table></div>
+  <h3 style="margin-top:12px">To'lovlar</h3><div class="tw"><table><tr><th>Sana</th><th class="n">Summa</th><th>Izoh</th><th></th></tr>
+  ${tl.map(r=>`<tr><td>${dmy(r.sana)}</td><td class="n">${fmt(r.summa)}</td><td class="wrap">${esc(r.izoh)}</td><td class="n"><button class="ic" onclick="del('rasxod',${r.id})">🗑</button></td></tr>`).join('')||'<tr><td colspan="4" class="empty">Yo\'q</td></tr>'}</table></div>
+  <div class="row" style="margin-top:14px"><button class="btn gh sm" onclick="editYet(${id})">✎ Nomini o'zgartirish</button><span class="sp"></span><button class="btn bad sm" onclick="delYet(${id})">🗑 Yetkazuvchini o'chirish</button></div>`);
+}
+async function addQarz(id){const s=k2s(val('qSum'));if(!(s>0))return alert('Summani kiriting');
+  if(await ins('qarz_olingan',{yetkazuvchi_id:id,sana:val('qSana'),nima:val('qNima').trim()||null,summa:s}))openYet(id)}
+async function payQarz(id){const y=D.yetkazuvchilar.find(v=>v.id===id);const s=k2s(val('pSum'));if(!(s>0))return alert('Summani kiriting');
+  if(await ins('rasxod',{sana:val('pSana'),summa:s,turi:'QARZ TOLOV',kimga:y.nomi,izoh:'Qarz to\'lovi'}))openYet(id)}
+async function delYet(id){const y=D.yetkazuvchilar.find(v=>v.id===id);
+  if(!confirm(`"${y.nomi}" va uning qarz yozuvlari o'chirilsinmi? (Rasxoddagi to'lovlar qoladi)`))return;
+  const {error}=await tb('yetkazuvchilar').delete().eq('id',id);if(error)return alert(error.message);closeM();toast('🗑 O\'chirildi');loadAll()}
+function editYet(id){const y=D.yetkazuvchilar.find(v=>v.id===id);
+  editForm('Yetkazuvchi',[{k:'nomi',l:'Nomi',v:y.nomi},{k:'tel',l:'Telefon',v:y.tel}],async v=>{
+    const old=y.nomi,nw=norm(v.nomi);if(!nw)return alert('Nom bo\'sh');
+    if(await upd('yetkazuvchilar',id,{nomi:nw,tel:v.tel||null})){
+      // eski nom bilan yozilgan to'lovlarni ham yangi nomga o'tkazish
+      const ids=D.rasxod.filter(r=>r.turi==='QARZ TOLOV'&&norm(r.kimga)===norm(old)).map(r=>r.id);
+      if(ids.length&&old!==nw){await tb('rasxod').update({kimga:nw}).in('id',ids);await loadAll()}
+      openYet(id)}})}
+
+// ===== OYLIK =====
+function rOylik(){
+  const R=inMon(D.rasxod).filter(r=>r.turi==='OYLIK');
+  const xs=D.xodimlar.slice().sort((a,b)=>(b.faol-a.faol)||a.ism.localeCompare(b.ism));
+  let to=0,tb=0;
+  const rows=xs.map(x=>{const b=sum(R.filter(r=>norm(r.kimga)===norm(x.ism)));if(x.faol){to+=+x.oylik;tb+=b}const q=x.oylik-b;
+    return `<tr style="${x.faol?'':'opacity:.5'}"><td><b>${esc(x.ism)}</b>${x.faol?'':' <span class="tag">nofaol</span>'}</td><td class="n">${fmt(x.oylik)}</td><td class="n">${fmt(b)}</td><td class="n ${q>0?'neg':'pos'}">${fmt(q)}</td><td class="n"><button class="btn ok sm" onclick="giveOylik(${x.id})">Berish</button> <button class="ic" onclick="editXodim(${x.id})">✎</button><button class="ic" onclick="del('xodimlar',${x.id},'Ishchi o\\'chirilsinmi? (Berilgan oyliklar rasxodda qoladi)')">🗑</button></td></tr>`}).join('');
+  const boshqa=R.filter(r=>!xs.some(x=>norm(x.ism)===norm(r.kimga)));
+  $('s-oylik').innerHTML=`
+  <div class="stats"><div class="st"><span>Jami oylik</span><b>${fmt(to)}</b></div><div class="st g"><span>Berildi</span><b>${fmt(tb)}</b></div><div class="st r"><span>Qoldi</span><b>${fmt(to-tb)}</b></div></div>
+  <div class="card"><h3>👷 ${monName(MON)} — oyliklar</h3><div class="tw"><table>
+    <tr><th>Ishchi</th><th class="n">Oylik</th><th class="n">Berildi</th><th class="n">Qoldiq</th><th></th></tr>
+    ${rows||'<tr><td colspan="5" class="empty">Ishchi qo\'shilmagan</td></tr>'}
+  </table></div><div class="hint">"Berildi" — shu oydagi OYLIK turidagi rasxodlar (Kimga = ishchi ismi).</div></div>
+  ${boshqa.length?`<div class="card"><h3>Ishchiga bog'lanmagan OYLIK rasxodlari</h3><div class="tw"><table><tr><th>Sana</th><th>Kimga</th><th class="n">Summa</th></tr>${boshqa.map(r=>`<tr><td>${dmy(r.sana)}</td><td>${esc(r.kimga||'—')}</td><td class="n">${fmt(r.summa)}</td></tr>`).join('')}</table></div></div>`:''}
+  <div class="card"><h3>➕ Yangi ishchi</h3><div class="frm">
+    <label>Ism<input id="xIsm" data-keep placeholder="masalan: ALISHER"></label>
+    <label>Oylik (ming so'm)${moneyInput('xOy')}</label>
+    <label>&nbsp;<button class="btn" onclick="addXodim()">➕ Qo'shish</button><div class="hint">&nbsp;</div></label>
+  </div></div>`;
+}
+async function addXodim(){const n=norm(val('xIsm'));if(!n)return alert('Ismni yozing');const s=k2s(val('xOy'));
+  if(D.xodimlar.some(x=>norm(x.ism)===n))return alert('Bu ism bor');
+  if(await ins('xodimlar',{ism:n,oylik:isNaN(s)?0:s})){$('xIsm').value='';$('xOy').value='';$('xOy_h').innerHTML='&nbsp;'}}
+function giveOylik(id){const x=D.xodimlar.find(v=>v.id===id);
+  const b=sum(inMon(D.rasxod).filter(r=>r.turi==='OYLIK'&&norm(r.kimga)===norm(x.ism)));
+  editForm('Oylik berish — '+x.ism,[{k:'sana',l:'Sana',t:'date',v:defDate()},{k:'summa',l:'Summa (ming so\'m)',t:'money',v:Math.max(0,x.oylik-b)},{k:'izoh',l:'Izoh',v:''}],
+    async v=>{if(!(v.summa>0))return alert('Summani kiriting');if(await ins('rasxod',{sana:v.sana,summa:v.summa,turi:'OYLIK',kimga:x.ism,izoh:v.izoh||null}))closeM()})}
+function editXodim(id){const x=D.xodimlar.find(v=>v.id===id);
+  editForm('Ishchi',[{k:'ism',l:'Ism',v:x.ism},{k:'oylik',l:'Oylik (ming so\'m)',t:'money',v:x.oylik},{k:'faol',l:'Holati',t:'select',o:[['1','Faol'],['0','Nofaol']],v:x.faol?'1':'0'}],
+    async v=>{const n=norm(v.ism);if(!n)return;const old=x.ism;
+      if(await upd('xodimlar',id,{ism:n,oylik:isNaN(v.oylik)?0:v.oylik,faol:v.faol==='1'})){
+        if(old!==n){const ids=D.rasxod.filter(r=>r.turi==='OYLIK'&&norm(r.kimga)===norm(old)).map(r=>r.id);if(ids.length){await tb('rasxod').update({kimga:n}).in('id',ids);await loadAll()}}
+        closeM()}})}
+
+// ===== EXSON =====
+function rExson(){
+  const ex=exsonAll();const G=D.exson_berildi.slice().sort((a,b)=>b.sana.localeCompare(a.sana));
+  $('s-exson').innerHTML=`
+  <div class="stats">
+    <div class="st b"><span>Jami exson (${exsonFoiz()}%)</span><b>${fmt(ex.due)}</b></div>
+    <div class="st g"><span>Berildi</span><b>${fmt(ex.given)}</b></div>
+    <div class="st y"><span>🤲 Qoldi</span><b>${fmt(ex.qolgan)}</b></div>
+  </div>
+  <div class="card"><h3>🤲 Exson berildi</h3><div class="frm">
+    <label>Sana<input type="date" id="eSana" data-keep value="${defDate()}"></label>
+    <label>Summa (ming so'm)${moneyInput('eSum')}</label>
+    <label>Kimga / izoh<input id="eIzoh" data-keep placeholder="ixtiyoriy"><div class="hint">&nbsp;</div></label>
+    <label>&nbsp;<button class="btn ok" onclick="addExson()">➕ Yozish</button><div class="hint">&nbsp;</div></label>
+  </div></div>
+  <div class="card"><h3>Oylar bo'yicha (sof foydadan ${exsonFoiz()}%)</h3><div class="tw"><table>
+    <tr><th>Oy</th><th class="n">Tushum</th><th class="n">Rasxod</th><th class="n">Sof foyda</th><th class="n">Exson</th></tr>
+    ${ex.rows.slice().reverse().map(r=>`<tr><td>${monName(r.m)}</td><td class="n">${fmt(r.t)}</td><td class="n">${fmt(r.r)}</td><td class="n ${r.f<0?'neg':''}">${fmt(r.f)}</td><td class="n"><b>${fmt(r.e)}</b></td></tr>`).join('')||'<tr><td colspan="5" class="empty">Ma\'lumot yo\'q</td></tr>'}
+  </table></div><div class="hint">Zarar bo'lgan oyda exson hisoblanmaydi.</div></div>
+  <div class="card"><h3>Berilgan exsonlar</h3><div class="tw"><table>
+    <tr><th>Sana</th><th class="n">Summa</th><th>Izoh</th><th></th></tr>
+    ${G.map(x=>`<tr><td>${dmy(x.sana)}</td><td class="n">${fmt(x.summa)}</td><td class="wrap">${esc(x.izoh)}</td><td class="n"><button class="ic" onclick="editExson(${x.id})">✎</button><button class="ic" onclick="del('exson_berildi',${x.id})">🗑</button></td></tr>`).join('')||'<tr><td colspan="4" class="empty">Hali yozilmagan</td></tr>'}
+  </table></div></div>`;
+}
+async function addExson(){const s=k2s(val('eSum'));if(!(s>0))return alert('Summani kiriting');
+  if(await ins('exson_berildi',{sana:val('eSana'),summa:s,izoh:val('eIzoh').trim()||null})){$('eSum').value='';$('eIzoh').value='';$('eSum_h').innerHTML='&nbsp;'}}
+
+// ===== TAHRIRLASH =====
+function editTushum(id){const x=D.tushum.find(v=>v.id===id);
+  editForm('Tushum',[{k:'sana',l:'Sana',t:'date',v:x.sana},{k:'summa',l:'Summa (ming so\'m)',t:'money',v:x.summa},{k:'izoh',l:'Izoh',v:x.izoh}],
+    async v=>{if(!(v.summa>=0))return alert('Summa xato');if(await upd('tushum',id,{sana:v.sana,summa:v.summa,izoh:v.izoh||null}))closeM()})}
+function editRasxod(id){const x=D.rasxod.find(v=>v.id===id);
+  const tl=TURLAR.includes(x.turi)?TURLAR:[...TURLAR,x.turi];
+  editForm('Rasxod',[{k:'sana',l:'Sana',t:'date',v:x.sana},{k:'summa',l:'Summa (ming so\'m)',t:'money',v:x.summa},{k:'turi',l:'Turi',t:'select',o:tl.map(t=>[t,t]),v:x.turi},{k:'kimga',l:'Kimga',v:x.kimga},{k:'izoh',l:'Izoh',v:x.izoh}],
+    async v=>{if(!(v.summa>=0))return alert('Summa xato');if(await upd('rasxod',id,{sana:v.sana,summa:v.summa,turi:v.turi,kimga:v.kimga||null,izoh:v.izoh||null}))closeM()})}
+function editQarz(id){const x=D.qarz_olingan.find(v=>v.id===id);
+  editForm('Qarzga olingan mol',[{k:'sana',l:'Sana',t:'date',v:x.sana},{k:'nima',l:'Nima',v:x.nima},{k:'summa',l:'Summa (ming so\'m)',t:'money',v:x.summa}],
+    async v=>{if(await upd('qarz_olingan',id,{sana:v.sana,nima:v.nima||null,summa:v.summa}))openYet(x.yetkazuvchi_id)})}
+function editExson(id){const x=D.exson_berildi.find(v=>v.id===id);
+  editForm('Exson',[{k:'sana',l:'Sana',t:'date',v:x.sana},{k:'summa',l:'Summa (ming so\'m)',t:'money',v:x.summa},{k:'izoh',l:'Izoh',v:x.izoh}],
+    async v=>{if(await upd('exson_berildi',id,{sana:v.sana,summa:v.summa,izoh:v.izoh||null}))closeM()})}
+
+let EF=null;
+function editForm(title,fields,onSave){
+  EF={fields,onSave};
+  openM(`<h3><span class="sp">✎ ${esc(title)}</span><button class="ic" onclick="closeM()">✕</button></h3><div class="frm" style="grid-template-columns:1fr">
+  ${fields.map((f,i)=>{const id='ef'+i;
+    if(f.t==='date')return `<label>${f.l}<input type="date" id="${id}" value="${esc(f.v||'')}"></label>`;
+    if(f.t==='money')return `<label>${f.l}<input id="${id}" inputmode="decimal" value="${f.v!=null?s2k(f.v):''}" oninput="mHint(this)"><div class="hint" id="${id}_h">${f.v!=null?'= '+fmt(f.v)+' so\'m':''}</div></label>`;
+    if(f.t==='select')return `<label>${f.l}<select id="${id}">${f.o.map(([v,t])=>`<option value="${esc(v)}"${v===f.v?' selected':''}>${esc(t)}</option>`).join('')}</select></label>`;
+    return `<label>${f.l}<input id="${id}" value="${esc(f.v||'')}"></label>`}).join('')}
+  </div><div class="row" style="margin-top:12px"><button class="btn gh" onclick="closeM()">Bekor</button><span class="sp"></span><button class="btn ok" onclick="saveEF()">💾 Saqlash</button></div>`);
+}
+function saveEF(){const v={};EF.fields.forEach((f,i)=>{const e=$('ef'+i);v[f.k]=f.t==='money'?k2s(e.value):e.value.trim()});EF.onSave(v)}
+function openM(h){$('mbox').innerHTML=h;$('modal').classList.add('on')}
+function closeM(){$('modal').classList.remove('on');reopen=null}
+
+// ===== YANGILANISH =====
+let NEWV=null;
+async function checkVer(){try{const r=await fetch('version.json?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;const j=await r.json();if(+j.v>APP_V){NEWV=j.v;$('upd').style.display='block'}}catch(e){}}
+function doUpdate(){location.replace(location.pathname+'?v='+(NEWV||Date.now()))}
+
+// ===== ISHGA TUSHIRISH =====
+(function init(){
+  if(!SB_URL||!SB_KEY){showBanner('⚠️ Baza hali ulanmagan (SB_URL / SB_KEY).');render();return}
+  sb=supabase.createClient(SB_URL,SB_KEY);
+  loadAll();
+  {const ch=sb.channel('crystal-wash');Object.keys(D).forEach(t=>ch.on('postgres_changes',{event:'*',schema:'public',table:PFX+t},softReload));ch.subscribe();}
+  setInterval(()=>{if(!$('modal').classList.contains('on'))loadAll()},120000);
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden){loadAll();checkVer()}});
+  checkVer();setInterval(checkVer,60000);
+})();
+</script>
+</body>
+</html>
