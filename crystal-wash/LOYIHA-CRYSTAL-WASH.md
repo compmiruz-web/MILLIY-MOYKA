@@ -42,3 +42,12 @@ Faqat CRYSTAL WASH SAM MOYKA xisob-kitob dasturi. MILLIY-MOYKA, COMPMIR, COM-TEC
 
 ## Keyingi bosqichlar
 2. Login + PIN · 3. Eski Excel · 4. Qarzlar ($) · 5. Sheriklar · 6. Rollar · 7. Excel yuklab olish · 8. Telefon ko'rinishi
+
+## Telegram bot — qarz eslatmasi (13.11.2026)
+- Bot: @crystal_washbot, guruh "Crystal Wash" (chat_id -5358505217)
+- Edge funksiya: cw-qarz-bot (verify_jwt o'chiq, o'rniga x-cw-key sarlavhasi tekshiriladi)
+  - ?amal=chats — bot turgan guruhlar ro'yxati; ?amal=test — sinov xabari; ?force=1 — tungi vaqtda ham yuborish
+- Jadval: pg_cron "cw-qarz-eslatma" — har soatda (0 * * * *); funksiya faqat 09:00–21:00 (Toshkent) yuboradi, qarz bo'lmasa jim
+- Sozlamalar yopiq jadvalda: cw_bot (bot_token, chat_id, cron_key) — RLS yoqilgan, anon/authenticated uchun yopiq
+- Xabar: har bir yetkazuvchining so'm va $ qoldig'i + jami
+- Baza o'zi api.telegram.org ga chiqa olmaydi — Telegram'ga faqat edge funksiya orqali
