@@ -358,3 +358,13 @@ select * from (values
 ('2026-10-30'::date,320::numeric,'OYLIK','ABDULBOQIY',null),
 ('2026-10-30'::date,480::numeric,'XIMIYA','MURODILJON','XIMIYA')
 ) v where not exists (select 1 from rasxod);
+
+-- Supabase panelida yaratilgan har bir yangi foydalanuvchi avtomatik ruxsat oladi
+-- (ochiq ro'yxatdan o'tish o'chirilgan: Authentication > Sign In / Providers)
+create or replace function public.yangi_foydalanuvchiga_ruxsat() returns trigger language plpgsql security definer set search_path = public as $$
+begin
+  insert into public.ruxsat_etilganlar(user_id, izoh) values (new.id, new.email) on conflict do nothing;
+  return new;
+end $$;
+drop trigger if exists ruxsat_avtomatik on auth.users;
+create trigger ruxsat_avtomatik after insert on auth.users for each row execute function public.yangi_foydalanuvchiga_ruxsat();
