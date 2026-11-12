@@ -134,6 +134,7 @@ input:focus,select:focus{border-color:var(--pri2);background:#fff;box-shadow:0 0
 .muted{color:var(--mut);font-size:13px}
 .empty{text-align:center;color:var(--mut);padding:26px 0;font-size:14px}
 
+.kprev{font-size:12px;color:var(--pri);font-weight:600;margin-top:4px;min-height:15px}
 /* modal */
 .modal{position:fixed;inset:0;background:rgba(8,20,40,.5);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;z-index:60;padding:16px;animation:fade .15s}
 .modal .card{width:100%;max-width:420px;max-height:90vh;overflow:auto;animation:pop .2s}
@@ -197,7 +198,7 @@ input:focus,select:focus{border-color:var(--pri2);background:#fff;box-shadow:0 0
 
   <!-- XISOBOT -->
   <section id="t-xisobot">
-    <div class="sect-t"><span id="xTitle">Xisobot</span><small>ming so'mda</small></div>
+    <div class="sect-t"><span id="xTitle">Xisobot</span><small>so'mda</small></div>
     <div class="grid g4">
       <div class="card stat"><div class="ic b">💵</div><div><div class="l">Tushum</div><div class="v" id="sTush">0</div><div class="d" id="dTush"></div></div></div>
       <div class="card stat"><div class="ic r">🧾</div><div><div class="l">Rasxod</div><div class="v" id="sRas">0</div><div class="d" id="dRas"></div></div></div>
@@ -221,7 +222,7 @@ input:focus,select:focus{border-color:var(--pri2);background:#fff;box-shadow:0 0
     <div class="card">
       <form class="f" onsubmit="saveTushum(event)">
         <div><label>Sana</label><input type="date" id="tuSana" required></div>
-        <div><label>Summa (ming)</label><input type="number" step="any" inputmode="decimal" id="tuSum" required placeholder="0"></div>
+        <div><label>Summa (ming so'mda)</label><input type="number" step="any" inputmode="decimal" id="tuSum" data-k required placeholder="0"></div>
         <div><label>Izoh</label><input id="tuIzoh" placeholder="ixtiyoriy"></div>
         <button class="btn">💾 Saqlash</button>
       </form>
@@ -237,7 +238,7 @@ input:focus,select:focus{border-color:var(--pri2);background:#fff;box-shadow:0 0
       <form class="f" onsubmit="saveRasxod(event)">
         <input type="hidden" id="raId">
         <div><label>Sana</label><input type="date" id="raSana" required></div>
-        <div><label>Summa (ming)</label><input type="number" step="any" inputmode="decimal" id="raSum" required placeholder="0"></div>
+        <div><label>Summa (ming so'mda)</label><input type="number" step="any" inputmode="decimal" id="raSum" data-k required placeholder="0"></div>
         <div><label>Turi</label><select id="raTur"></select></div>
         <div><label>Kimga</label><input id="raKim" list="kimList" autocomplete="off" placeholder="ism"></div>
         <div style="grid-column:1/-1"><label>Nima uchun / izoh</label><input id="raIzoh"></div>
@@ -259,21 +260,21 @@ input:focus,select:focus{border-color:var(--pri2);background:#fff;box-shadow:0 0
           <div><label>Sana</label><input type="date" id="qoSana" required></div>
           <div><label>Kimdan</label><select id="qoKim" required></select></div>
           <div><label>Nima</label><input id="qoNima"></div>
-          <div><label>Summa</label><input type="number" step="any" inputmode="decimal" id="qoSum" required></div>
+          <div><label>Summa (ming so'mda)</label><input type="number" step="any" inputmode="decimal" id="qoSum" data-k required></div>
           <button class="btn r">Qarzga yozish</button>
         </form></div>
       <div class="card"><h3>🟢 Qarz to'lash</h3>
         <form class="v" onsubmit="payQarz(event)">
           <div><label>Sana</label><input type="date" id="qtSana" required></div>
           <div><label>Kimga</label><select id="qtKim" required></select></div>
-          <div><label>Summa</label><input type="number" step="any" inputmode="decimal" id="qtSum" required></div>
+          <div><label>Summa (ming so'mda)</label><input type="number" step="any" inputmode="decimal" id="qtSum" data-k required></div>
           <div><label>Izoh</label><input id="qtIzoh"></div>
           <button class="btn g">To'lash</button>
         </form></div>
       <div class="card"><h3>➕ Yangi yetkazuvchi</h3>
         <form class="v" onsubmit="addSup(event)">
           <div><label>Ism</label><input id="ysIsm" required></div>
-          <div><label>Boshlang'ich qarz</label><input type="number" step="any" id="ysQarz" value="0"></div>
+          <div><label>Boshlang'ich qarz (ming)</label><input type="number" step="any" id="ysQarz" data-k value="0"></div>
           <button class="btn">Qo'shish</button>
         </form></div>
     </div>
@@ -290,13 +291,13 @@ input:focus,select:focus{border-color:var(--pri2);background:#fff;box-shadow:0 0
         <form class="v" onsubmit="payOylik(event)">
           <div><label>Sana</label><input type="date" id="opSana" required></div>
           <div><label>Xodim</label><select id="opIsm" required></select></div>
-          <div><label>Summa</label><input type="number" step="any" inputmode="decimal" id="opSum" required></div>
+          <div><label>Summa (ming so'mda)</label><input type="number" step="any" inputmode="decimal" id="opSum" data-k required></div>
           <button class="btn g">Berish</button>
         </form></div>
       <div class="card"><h3>➕ Yangi xodim</h3>
         <form class="v" onsubmit="addXodim(event)">
           <div><label>Ism</label><input id="xoIsm" required></div>
-          <div><label>Oylik maoshi</label><input type="number" step="any" id="xoOy" required></div>
+          <div><label>Oylik maoshi (ming)</label><input type="number" step="any" id="xoOy" data-k required></div>
           <button class="btn">Qo'shish</button>
         </form></div>
     </div>
@@ -307,7 +308,7 @@ input:focus,select:focus{border-color:var(--pri2);background:#fff;box-shadow:0 0
 <!-- EXSON oynasi -->
 <div id="exModal" class="modal hide" onclick="if(event.target===this)closeM('exModal')">
   <div class="card">
-    <div class="exhead"><div style="font-weight:600;opacity:.9">🤲 Olloh yo'lidagi exson</div><div class="big" id="exQol">0</div><div style="opacity:.9;font-size:13px">berilishi kerak (ming so'm)</div></div>
+    <div class="exhead"><div style="font-weight:600;opacity:.9">🤲 Olloh yo'lidagi exson</div><div class="big" id="exQol">0</div><div style="opacity:.9;font-size:13px">berilishi kerak (so'm)</div></div>
     <div class="row"><span>Foiz (sof foydadan)</span><b><span id="exFoiz">5</span>% <button class="ib" onclick="editFoiz()">✎</button></b></div>
     <div class="row"><span id="exOyL">Shu oy</span><b id="exOy">0</b></div>
     <div class="row"><span>Jami hisoblangan</span><b id="exJami">0</b></div>
@@ -315,7 +316,7 @@ input:focus,select:focus{border-color:var(--pri2);background:#fff;box-shadow:0 0
     <form class="v" style="margin-top:14px" onsubmit="addExson(event)">
       <div class="grid" style="grid-template-columns:1fr 1fr;gap:10px">
         <div><label>Sana</label><input type="date" id="exSana" required></div>
-        <div><label>Summa</label><input type="number" step="any" inputmode="decimal" id="exSum" required></div>
+        <div><label>Summa (ming so'mda)</label><input type="number" step="any" inputmode="decimal" id="exSum" data-k required></div>
       </div>
       <div><label>Izoh</label><input id="exIzoh"></div>
       <button class="btn g w">Exson berdim</button>
@@ -343,7 +344,7 @@ input:focus,select:focus{border-color:var(--pri2);background:#fff;box-shadow:0 0
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script>
 /* ======== VERSIYA (har yangilanishda version.json bilan birga oshiriladi) ======== */
-const APP_V='2026.11.12-3';
+const APP_V='2026.11.12-4';
 
 const TURLAR=['OYLIK','XIMIYA','REMONT / EHTIYOT QISM','QARZ TOLOV','ARENDA','APARAT TOLOV','SVET','OBED','BOSHQA','BOLINMAGAN'];
 const TCOL={'OYLIK':'#dbeafe','XIMIYA':'#dcfce7','REMONT / EHTIYOT QISM':'#ffedd5','QARZ TOLOV':'#fee2e2','ARENDA':'#ede9fe','APARAT TOLOV':'#f3e8ff','SVET':'#fef9c3','OBED':'#f1f5f9','BOSHQA':'#e2e8f0','BOLINMAGAN':'#e5e7eb'};
@@ -354,7 +355,10 @@ let sb=null, D={tushum:[],rasxod:[],yet:[],qarzOl:[],xod:[],exson:[],foiz:5};
 
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const fmt=n=>(Math.round((+n||0)*10)/10).toLocaleString('ru-RU').replace(/,/g,'.');
+const fmt=n=>Math.round(+n||0).toLocaleString('ru-RU');
+const K=1000; // kiritish ming so'mda: 212 -> 212 000 so'm
+const inp=id=>Math.round((+$(id).value||0)*K);
+const kv=v=>+(+v/K).toFixed(3);
 const cls=n=>n<0?'neg':(n>0?'pos':'');
 const today=()=>{const d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,10)};
 const ym=s=>String(s).slice(0,7);
@@ -559,32 +563,32 @@ function renderOylik(k){
 async function run(p,msg){const {error}=await p;if(error){err(error);return false}await loadAll();render();if(msg)toast('✅ '+msg);return true}
 const up=s=>s.trim().toUpperCase();
 async function saveTushum(e){e.preventDefault();
-  if(await run(sb.from('tushum').upsert({sana:$('tuSana').value,summa:+$('tuSum').value,izoh:$('tuIzoh').value||null},{onConflict:'sana'}),'Tushum saqlandi')){$('tuSum').value='';$('tuIzoh').value=''}}
-function editTushum(id){const r=D.tushum.find(x=>x.id===id);$('tuSana').value=r.sana;$('tuSum').value=r.summa;$('tuIzoh').value=r.izoh||'';scrollTo(0,0);$('tuSum').focus()}
+  if(await run(sb.from('tushum').upsert({sana:$('tuSana').value,summa:inp('tuSum'),izoh:$('tuIzoh').value||null},{onConflict:'sana'}),'Tushum saqlandi')){$('tuSum').value='';$('tuIzoh').value=''}}
+function editTushum(id){const r=D.tushum.find(x=>x.id===id);$('tuSana').value=r.sana;$('tuSum').value=kv(r.summa);$('tuIzoh').value=r.izoh||'';scrollTo(0,0);$('tuSum').focus()}
 async function saveRasxod(e){e.preventDefault();
-  const id=$('raId').value,row={sana:$('raSana').value,summa:+$('raSum').value,turi:$('raTur').value,kimga:up($('raKim').value)||null,izoh:$('raIzoh').value.trim()||null};
+  const id=$('raId').value,row={sana:$('raSana').value,summa:inp('raSum'),turi:$('raTur').value,kimga:up($('raKim').value)||null,izoh:$('raIzoh').value.trim()||null};
   const p=id?sb.from('rasxod').update(row).eq('id',id):sb.from('rasxod').insert(row);
   if(await run(p,id?'Yangilandi':"Rasxod qo'shildi"))clearRasxod();}
-function editRasxod(id){const r=D.rasxod.find(x=>x.id===id);$('raId').value=id;$('raSana').value=r.sana;$('raSum').value=r.summa;$('raTur').value=r.turi;$('raKim').value=r.kimga||'';$('raIzoh').value=r.izoh||'';$('raBtn').textContent='💾 Yangilash';$('raCancel').classList.remove('hide');scrollTo(0,0)}
+function editRasxod(id){const r=D.rasxod.find(x=>x.id===id);$('raId').value=id;$('raSana').value=r.sana;$('raSum').value=kv(r.summa);$('raTur').value=r.turi;$('raKim').value=r.kimga||'';$('raIzoh').value=r.izoh||'';$('raBtn').textContent='💾 Yangilash';$('raCancel').classList.remove('hide');scrollTo(0,0)}
 function clearRasxod(){$('raId').value='';$('raSum').value='';$('raKim').value='';$('raIzoh').value='';$('raBtn').textContent="➕ Qo'shish";$('raCancel').classList.add('hide')}
 async function del(t,id){if(await ask("O'chirilsinmi?"))run(sb.from(t).delete().eq('id',id),"O'chirildi")}
 async function addQarz(e){e.preventDefault();
-  if(await run(sb.from('qarz_olingan').insert({sana:$('qoSana').value,kim:$('qoKim').value,nima:$('qoNima').value||null,summa:+$('qoSum').value}),'Qarz yozildi')){$('qoSum').value='';$('qoNima').value=''}}
+  if(await run(sb.from('qarz_olingan').insert({sana:$('qoSana').value,kim:$('qoKim').value,nima:$('qoNima').value||null,summa:inp('qoSum')}),'Qarz yozildi')){$('qoSum').value='';$('qoNima').value=''}}
 async function payQarz(e){e.preventDefault();
-  if(await run(sb.from('rasxod').insert({sana:$('qtSana').value,summa:+$('qtSum').value,turi:'QARZ TOLOV',kimga:$('qtKim').value,izoh:$('qtIzoh').value||null}),"To'lov yozildi")){$('qtSum').value='';$('qtIzoh').value=''}}
+  if(await run(sb.from('rasxod').insert({sana:$('qtSana').value,summa:inp('qtSum'),turi:'QARZ TOLOV',kimga:$('qtKim').value,izoh:$('qtIzoh').value||null}),"To'lov yozildi")){$('qtSum').value='';$('qtIzoh').value=''}}
 async function addSup(e){e.preventDefault();
-  if(await run(sb.from('yetkazuvchilar').insert({kim:up($('ysIsm').value),boshlangich_qarz:+$('ysQarz').value||0}),"Qo'shildi")){$('ysIsm').value='';$('ysQarz').value=0}}
-async function editBosh(i){const y=D.yet[i];const v=await ask(y.kim+" — boshlang'ich qarz:",y.boshlangich_qarz);if(v===null)return;
-  run(sb.from('yetkazuvchilar').update({boshlangich_qarz:+v||0}).eq('kim',y.kim),'Saqlandi')}
+  if(await run(sb.from('yetkazuvchilar').insert({kim:up($('ysIsm').value),boshlangich_qarz:inp('ysQarz')}),"Qo'shildi")){$('ysIsm').value='';$('ysQarz').value=0}}
+async function editBosh(i){const y=D.yet[i];const v=await ask(y.kim+" — boshlang'ich qarz (ming so'm):",kv(y.boshlangich_qarz));if(v===null)return;
+  run(sb.from('yetkazuvchilar').update({boshlangich_qarz:Math.round((+v||0)*K)}).eq('kim',y.kim),'Saqlandi')}
 async function payOylik(e){e.preventDefault();
-  if(await run(sb.from('rasxod').insert({sana:$('opSana').value,summa:+$('opSum').value,turi:'OYLIK',kimga:$('opIsm').value}),'Oylik yozildi'))$('opSum').value=''}
+  if(await run(sb.from('rasxod').insert({sana:$('opSana').value,summa:inp('opSum'),turi:'OYLIK',kimga:$('opIsm').value}),'Oylik yozildi'))$('opSum').value=''}
 async function addXodim(e){e.preventDefault();
-  if(await run(sb.from('xodimlar').upsert({ism:up($('xoIsm').value),oylik:+$('xoOy').value,faol:true}),"Qo'shildi")){$('xoIsm').value='';$('xoOy').value=''}}
+  if(await run(sb.from('xodimlar').upsert({ism:up($('xoIsm').value),oylik:inp('xoOy'),faol:true}),"Qo'shildi")){$('xoIsm').value='';$('xoOy').value=''}}
 async function editXodim(i){const x=D.xod.filter(z=>z.faol)[i];
-  const v=await ask(x.ism+" — oylik maoshi (ishdan ketgan bo'lsa 0):",x.oylik);if(v===null)return;
-  run(sb.from('xodimlar').update(+v>0?{oylik:+v}:{faol:false}).eq('ism',x.ism),'Saqlandi')}
+  const v=await ask(x.ism+" — oylik maoshi, ming so'm (ishdan ketgan bo'lsa 0):",kv(x.oylik));if(v===null)return;
+  run(sb.from('xodimlar').update(+v>0?{oylik:Math.round(+v*K)}:{faol:false}).eq('ism',x.ism),'Saqlandi')}
 async function addExson(e){e.preventDefault();
-  if(await run(sb.from('exson_berildi').insert({sana:$('exSana').value,summa:+$('exSum').value,izoh:$('exIzoh').value||null}),'Exson yozildi')){$('exSum').value='';$('exIzoh').value=''}}
+  if(await run(sb.from('exson_berildi').insert({sana:$('exSana').value,summa:inp('exSum'),izoh:$('exIzoh').value||null}),'Exson yozildi')){$('exSum').value='';$('exIzoh').value=''}}
 async function editFoiz(){const v=await ask('Exson foizi (%):',D.foiz);if(v===null||v===''||isNaN(+v))return;
   run(sb.from('sozlamalar').upsert({kalit:'exson_foiz',qiymat:String(+v)}),'Saqlandi')}
 
@@ -597,6 +601,15 @@ function exportXlsx(){
   XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([['SANA','KIM','NIMA','SUMMA'],...D.qarzOl.map(q=>[dmy(q.sana),q.kim,q.nima||'',+q.summa])]),'QARZGA OLINGAN');
   XLSX.writeFile(wb,'MILLIY_MOYKA_'+today()+'.xlsx');
 }
+
+/* ---------- SUMMA KO'RINISHI (212 -> 212 000 so'm) ---------- */
+document.querySelectorAll('input[data-k]').forEach(i=>{
+  const d=document.createElement('div');d.className='kprev';i.after(d);
+  const u=()=>{d.textContent=i.value!==''?'= '+fmt((+i.value||0)*K)+" so'm":''};
+  i.addEventListener('input',u);i._u=u;
+});
+const _setv=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value');
+Object.defineProperty(HTMLInputElement.prototype,'value',{get(){return _setv.get.call(this)},set(v){_setv.set.call(this,v);if(this._u)this._u()}});
 
 /* ---------- TABLAR ---------- */
 document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>{
