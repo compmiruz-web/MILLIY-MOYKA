@@ -53,14 +53,26 @@ create table if not exists sozlamalar (
   qiymat text
 );
 
--- Xavfsizlik: faqat tizimga kirgan foydalanuvchilar ishlay oladi
+-- Xavfsizlik: faqat ruxsat_etilganlar ro'yxatidagi foydalanuvchilar ishlay oladi
+create table if not exists public.ruxsat_etilganlar (user_id uuid primary key references auth.users(id) on delete cascade, izoh text);
+alter table public.ruxsat_etilganlar enable row level security;
+revoke all on public.ruxsat_etilganlar from anon, authenticated;
+create or replace function public.ruxsat_bormi() returns boolean language sql stable security definer set search_path = public as $f$
+  select exists(select 1 from public.ruxsat_etilganlar where user_id = auth.uid());
+$f$;
+revoke all on function public.ruxsat_bormi() from public, anon;
+grant execute on function public.ruxsat_bormi() to authenticated;
 do $$ declare t text; begin
   foreach t in array array['tushum','rasxod','yetkazuvchilar','qarz_olingan','xodimlar','exson_berildi','sozlamalar'] loop
-    execute format('alter table %I enable row level security', t);
-    execute format('drop policy if exists "auth_all" on %I', t);
-    execute format('create policy "auth_all" on %I for all to authenticated using (true) with check (true)', t);
+    execute format('alter table public.%I enable row level security', t);
+    execute format('drop policy if exists "auth_all" on public.%I', t);
+    execute format('drop policy if exists "faqat_ruxsatli" on public.%I', t);
+    execute format('create policy "faqat_ruxsatli" on public.%I for all to authenticated using (public.ruxsat_bormi()) with check (public.ruxsat_bormi())', t);
+    execute format('revoke all on public.%I from anon', t);
   end loop;
 end $$;
+-- Yangi foydalanuvchiga ruxsat berish (Authentication > Users da yaratgandan keyin):
+-- insert into public.ruxsat_etilganlar(user_id, izoh) select id, 'xodim' from auth.users where email='EMAIL';
 
 -- ===== BOSHLANG'ICH MA'LUMOTLAR (Excel fayllardan) =====
 insert into sozlamalar(kalit,qiymat) values ('exson_foiz','5') on conflict do nothing;
