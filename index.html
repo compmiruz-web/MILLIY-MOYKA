@@ -394,7 +394,7 @@ input:focus,select:focus{border-color:var(--pri2);background:#fff;box-shadow:0 0
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script>
 /* ======== VERSIYA (har yangilanishda version.json bilan birga oshiriladi) ======== */
-const APP_V='2026.11.12-15';
+const APP_V='2026.11.12-16';
 
 const TURLAR=['OYLIK','XIMIYA','REMONT / EHTIYOT QISM','QARZ TOLOV','ARENDA','APARAT TOLOV','SVET','OBED','BOSHQA','BOLINMAGAN'];
 const TCOL={'OYLIK':'#dbeafe','XIMIYA':'#dcfce7','REMONT / EHTIYOT QISM':'#ffedd5','QARZ TOLOV':'#fee2e2','ARENDA':'#ede9fe','APARAT TOLOV':'#f3e8ff','SVET':'#fef9c3','OBED':'#f1f5f9','BOSHQA':'#e2e8f0','BOLINMAGAN':'#e5e7eb'};
@@ -705,7 +705,7 @@ function _renderSherik(box){
       <div style="background:#fef2f2;border-radius:12px;padding:10px 12px"><div class="muted" style="font-size:12px;font-weight:600">QARZ QOLDIG'I</div><div style="font-weight:800;font-size:18px" class="neg">${two(c.tot)}</div></div>
       <div style="background:#eff6ff;border-radius:12px;padding:10px 12px"><div class="muted" style="font-size:12px;font-weight:600">SHAXSIY PUL</div><div style="font-weight:800;font-size:18px">${two(c.own)}</div></div></div>
     <div class="tw"><table><thead><tr><th>Haqdor</th><th class="n">Olingan</th><th class="n">Berilgan</th><th class="n">Qoldiq</th><th></th></tr></thead><tbody>
-      ${c.act.map(x=>`<tr><td>${isBoss()?`<button class="ib" style="float:right;margin-left:6px" title="Tahrirlash" onclick="shHaq(${q(x.xaqdor)})">✎</button>`:''}<b>${esc(x.xaqdor)}</b>${x.izoh.length?`<div class="muted" style="font-size:12px">${esc(x.izoh.join(', '))}</div>`:''}</td><td class="n">${two(x.o)}</td><td class="n">${two(x.t)}</td><td class="n neg"><b>${two(x.q)}</b></td>
+      ${c.act.map(x=>`<tr><td><b>${esc(x.xaqdor)}</b>${x.izoh.length?`<div class="muted" style="font-size:12px">${esc(x.izoh.join(', '))}</div>`:''}</td><td class="n"><div style="display:flex;align-items:center;justify-content:flex-end;gap:6px"><span>${two(x.o)}</span>${isBoss()?`<button class="ib" title="Tahrirlash" onclick="shHaq(${q(x.xaqdor)})">✎</button>`:''}</div></td><td class="n">${two(x.t)}</td><td class="n neg"><b>${two(x.q)}</b></td>
         <td class="n"><button class="ib w ${can('qarz_ber')?'':'noperm'}" title="Qarz berish" onclick="$('sqtX').value=${q(x.xaqdor)};$('sqtSum').focus()">💸</button></td></tr>`).join('')||'<tr><td colspan="5" class="empty">Qarz yo\'q</td></tr>'}
     </tbody></table></div>
     ${shHist?`<div style="margin-top:12px;border:2px solid #cfe0f5;border-radius:12px;padding:10px">
