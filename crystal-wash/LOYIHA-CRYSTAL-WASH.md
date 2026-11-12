@@ -49,7 +49,7 @@ Faqat CRYSTAL WASH SAM MOYKA xisob-kitob dasturi. MILLIY-MOYKA, COMPMIR, COM-TEC
   - ?amal=chats — bot turgan guruhlar ro'yxati; ?amal=test — sinov xabari; ?force=1 — tungi vaqtda ham yuborish
   - ?amal=kunlik[&sana=YYYY-MM-DD] — kunlik xisobot: kun tushumi, rasxodi (turlar bo'yicha), kun qoldig'i, oy boshidan tushum/rasxod/sof foyda/exson, berilishi kerak exson
 - Jadval: pg_cron "cw-kunlik-xisobot" — har kuni 22:00 Toshkent (0 17 * * * UTC)
-- Jadval: pg_cron "cw-qarz-eslatma" — har soatda (0 * * * *); funksiya faqat 09:00–21:00 (Toshkent) yuboradi, qarz bo'lmasa jim
+- Jadval: pg_cron "cw-qarz-eslatma" — kuniga 1 marta, 09:00 Toshkent (0 4 * * * UTC); qarz bo'lmasa jim
 - Sozlamalar yopiq jadvalda: cw_bot (bot_token, chat_id, cron_key) — RLS yoqilgan, anon/authenticated uchun yopiq
 - Xabar: har bir yetkazuvchining so'm va $ qoldig'i + jami
 - Baza o'zi api.telegram.org ga chiqa olmaydi — Telegram'ga faqat edge funksiya orqali
