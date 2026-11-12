@@ -3,7 +3,8 @@
 Faqat CRYSTAL WASH SAM MOYKA xisob-kitob dasturi. MILLIY-MOYKA, COMPMIR, COM-TECH bilan aralashtirilmaydi.
 
 ## Holat (13.11.2026)
-- Versiya: APP_V = 1 (version.json → {"v":1})
+- Versiya: APP_V = 2 (version.json → {"v":2})
+- v2: qarzlar so'm va $ da (valyuta tanlanadi, eslab qolinadi); boshlang'ich qarz so'm va $; $ to'lovida kurs so'raladi — rasxodga so'mda, usd va kurs ham saqlanadi
 - 1-bosqich (asosiy dastur) — kod tayyor, telefon o'lchamida sinab ko'rildi
 - Baza: MILLIY-MOYKA bilan bitta Supabase loyihasi "sammoyka" (scozfycitumfftdpuphd) — rahbar qarori 13.11.2026
   - CRYSTAL WASH jadvallari faqat cw_ bilan boshlanadi; MILLIY-MOYKA jadvallariga (prefikssiz) tegilmaydi

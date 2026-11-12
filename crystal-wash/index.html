@@ -108,7 +108,7 @@ tr.tot td{font-weight:800;background:#f7f9fc}
 
 <script>
 // ===== SOZLAMA =====
-const APP_V = 1;
+const APP_V = 2;
 const SB_URL = 'https://scozfycitumfftdpuphd.supabase.co';
 const SB_KEY = 'sb_publishable_eD7JfcPrq6TMus9Vm6vKRQ_uWDyuQ62';
 const PFX = 'cw_'; // CRYSTAL WASH jadvallari (MILLIY-MOYKA bilan aralashmaydi)
@@ -188,11 +188,6 @@ function exsonAll(){
   const given=sum(D.exson_berildi);
   return {rows,due,given,qolgan:due-given};
 }
-function supplierStat(y){
-  const ol=D.qarz_olingan.filter(q=>q.yetkazuvchi_id===y.id);
-  const tol=D.rasxod.filter(r=>r.turi==='QARZ TOLOV'&&norm(r.kimga)===norm(y.nomi));
-  const a=sum(ol),b=sum(tol);return {ol,tol,a,b,q:a-b};
-}
 
 // ===== RENDER =====
 function render(){
@@ -236,7 +231,6 @@ function rXisobot(){
 }
 
 function moneyInput(id,ph){return `<input id="${id}" data-keep inputmode="decimal" placeholder="${ph||'ming so\'mda'}" oninput="mHint(this)"><div class="hint" id="${id}_h">&nbsp;</div>`}
-function mHint(el){const h=$(el.id+'_h');if(!h)return;const n=k2s(el.value);h.textContent=isNaN(n)?' ':'= '+fmt(n)+' so\'m'}
 
 function rTushum(){
   const T=inMon(D.tushum).slice().sort((a,b)=>b.sana.localeCompare(a.sana)||b.id-a.id);
@@ -283,56 +277,107 @@ async function addRasxod(){
 }
 
 // ===== QARZLAR =====
+function vSel(id){const v=localStorage.getItem('cw_val')||'UZS';return `<select id="${id}" onchange="localStorage.setItem('cw_val',this.value);vChg('${id}')"><option value="UZS"${v==='UZS'?' selected':''}>so'm</option><option value="USD"${v==='USD'?' selected':''}>$ dollar</option></select>`}
+function vChg(id){ // valyuta o'zgarganda summa yozuvi va kurs maydoni
+  const v=$(id).value, p=id.slice(0,1);
+  const l=$(p+'SumL');if(l)l.textContent=v==='USD'?'Summa ($)':'Summa (ming so\'m)';
+  const s=$(p+'Sum');if(s){s.placeholder=v==='USD'?'dollarda':'ming so\'mda';mHint(s)}
+  const k=$(p+'KursW');if(k)k.style.display=v==='USD'?'':'none';
+}
+function readAmt(id,valId){const v=$(valId).value;
+  if(v==='USD'){const n=Number(String($(id).value).replace(/\s/g,'').replace(',','.'));return {v,usd:isFinite(n)?Math.round(n*100)/100:NaN}}
+  return {v,som:k2s($(id).value)}}
+function mHint(el){const h=$(el.id+'_h');if(!h)return;const vs=$(el.id.slice(0,1)+'Val');
+  if(vs&&vs.value==='USD'){const n=Number(String(el.value).replace(/\s/g,'').replace(',','.'));h.textContent=el.value&&isFinite(n)?'= '+fusd(n):' ';
+    const k=$(el.id.slice(0,1)+'Kurs');if(el.value&&k&&isFinite(n)&&k2s(k.value)>0)h.textContent+=' ≈ '+fmt(n*Number(String(k.value).replace(/\s/g,'')))+' so\'m';return}
+  const n=k2s(el.value);h.textContent=isNaN(n)?' ':'= '+fmt(n)+' so\'m'}
+function fusd(n){n=+n||0;const neg=n<0;n=Math.abs(n);const i=Math.floor(n),c=Math.round((n-i)*100);
+  return (neg?'−':'')+'$'+i.toString().replace(/\B(?=(\d{3})+(?!\d))/g,' ')+(c?'.'+String(c).padStart(2,'0'):'')}
+function supplierStat(y){
+  const ol=D.qarz_olingan.filter(q=>q.yetkazuvchi_id===y.id);
+  const tol=D.rasxod.filter(r=>r.turi==='QARZ TOLOV'&&norm(r.kimga)===norm(y.nomi));
+  const aS=sum(ol.filter(q=>q.valyuta!=='USD')), aU=sum(ol.filter(q=>q.valyuta==='USD'),'usd');
+  const bS=sum(tol.filter(r=>r.usd==null)), bU=sum(tol.filter(r=>r.usd!=null),'usd');
+  return {ol,tol,aS,aU,bS,bU,qS:aS-bS,qU:Math.round((aU-bU)*100)/100};
+}
 function rQarz(){
-  const ys=D.yetkazuvchilar.map(y=>({y,...supplierStat(y)})).sort((a,b)=>b.q-a.q);
-  const tq=ys.reduce((t,x)=>t+x.q,0);
+  const ys=D.yetkazuvchilar.map(y=>({y,...supplierStat(y)})).sort((a,b)=>(b.qS+b.qU*13000)-(a.qS+a.qU*13000));
+  const tS=ys.reduce((t,x)=>t+x.qS,0), tU=ys.reduce((t,x)=>t+x.qU,0);
   $('s-qarz').innerHTML=`
-  <div class="stats"><div class="st r"><span>Jami qarz qoldig'i</span><b>${fmt(tq)}</b></div><div class="st"><span>Yetkazuvchilar</span><b>${ys.length}</b></div></div>
+  <div class="stats"><div class="st r"><span>Qarz qoldig'i (so'm)</span><b>${fmt(tS)}</b></div><div class="st r"><span>Qarz qoldig'i ($)</span><b>${fusd(tU)}</b></div></div>
   <div class="card"><h3>➕ Yangi yetkazuvchi</h3><div class="frm">
     <label>Nomi<input id="yNom" data-keep placeholder="masalan: XIMIYA AKMAL"></label>
     <label>Telefon<input id="yTel" data-keep inputmode="tel" placeholder="ixtiyoriy"></label>
+    <label>Boshlang'ich qarz (ming so'm)<input id="yBS" data-keep inputmode="decimal" placeholder="bo'lmasa bo'sh"></label>
+    <label>Boshlang'ich qarz ($)<input id="yBU" data-keep inputmode="decimal" placeholder="bo'lmasa bo'sh"></label>
     <label>&nbsp;<button class="btn" onclick="addYet()">➕ Qo'shish</button></label>
   </div></div>
   <div class="card"><h3>📒 Qarzga olingan ximiya / ehtiyot qismlar</h3><div class="tw"><table>
-    <tr><th>Yetkazuvchi</th><th class="n">Olingan</th><th class="n">To'langan</th><th class="n">Qoldiq</th><th></th></tr>
-    ${ys.map(x=>`<tr onclick="openYet(${x.y.id})" style="cursor:pointer"><td><b>${esc(x.y.nomi)}</b>${x.y.tel?`<br><small>${esc(x.y.tel)}</small>`:''}</td><td class="n">${fmt(x.a)}</td><td class="n">${fmt(x.b)}</td><td class="n ${x.q>0?'neg':'pos'}"><b>${fmt(x.q)}</b></td><td>›</td></tr>`).join('')||'<tr><td colspan="5" class="empty">Yetkazuvchi qo\'shilmagan</td></tr>'}
-  </table></div><div class="hint">Qarz to'lovi Rasxodga "QARZ TOLOV" turi bilan, Kimga = yetkazuvchi nomi bo'lib yoziladi va qarzdan ayiriladi.</div></div>`;
+    <tr><th>Yetkazuvchi</th><th class="n">Qoldiq so'm</th><th class="n">Qoldiq $</th><th></th></tr>
+    ${ys.map(x=>`<tr onclick="openYet(${x.y.id})" style="cursor:pointer"><td><b>${esc(x.y.nomi)}</b>${x.y.tel?`<br><small>${esc(x.y.tel)}</small>`:''}</td><td class="n ${x.qS>0?'neg':''}"><b>${x.aS||x.bS?fmt(x.qS):'—'}</b></td><td class="n ${x.qU>0?'neg':''}"><b>${x.aU||x.bU?fusd(x.qU):'—'}</b></td><td>›</td></tr>`).join('')||'<tr><td colspan="4" class="empty">Yetkazuvchi qo\'shilmagan</td></tr>'}
+  </table></div><div class="hint">Qarz to'lovi Rasxodga "QARZ TOLOV" bo'lib so'mda yoziladi. Dollar to'lovida kurs so'raladi, $ summasi va kurs ham saqlanadi.</div></div>`;
 }
 async function addYet(){
   const n=norm(val('yNom'));if(!n)return alert('Nomini yozing');
   if(D.yetkazuvchilar.some(y=>norm(y.nomi)===n))return alert('Bu nom bor');
-  if(await ins('yetkazuvchilar',{nomi:n,tel:val('yTel').trim()||null})){$('yNom').value='';$('yTel').value=''}
+  const bs=k2s(val('yBS')), bu=Number(val('yBU').replace(/\s/g,'').replace(',','.'));
+  const {data,error}=await tb('yetkazuvchilar').insert({nomi:n,tel:val('yTel').trim()||null}).select().single();
+  if(error)return alert('Xato: '+error.message);
+  const rows=[];const d=defDate();
+  if(bs>0)rows.push({yetkazuvchi_id:data.id,sana:d,nima:'Boshlang\'ich qarz',valyuta:'UZS',summa:bs});
+  if(bu>0)rows.push({yetkazuvchi_id:data.id,sana:d,nima:'Boshlang\'ich qarz',valyuta:'USD',summa:0,usd:Math.round(bu*100)/100});
+  if(rows.length){const r=await tb('qarz_olingan').insert(rows);if(r.error)alert('Xato: '+r.error.message)}
+  ['yNom','yTel','yBS','yBU'].forEach(i=>$(i).value='');toast('✅ Saqlandi');await loadAll();
 }
 let reopen=null;
+function qAmt(q){return q.valyuta==='USD'?fusd(q.usd):fmt(q.summa)}
 function openYet(id){
   const y=D.yetkazuvchilar.find(v=>v.id===id);if(!y)return closeM();
   reopen=()=>openYet(id);
   const s=supplierStat(y);
   const ol=s.ol.slice().sort((a,b)=>b.sana.localeCompare(a.sana));
   const tl=s.tol.slice().sort((a,b)=>b.sana.localeCompare(a.sana));
+  const hasS=s.aS||s.bS, hasU=s.aU||s.bU;
   openM(`<h3><span class="sp">📒 ${esc(y.nomi)}</span><button class="ic" onclick="closeM()">✕</button></h3>
-  <div class="stats"><div class="st"><span>Olingan</span><b>${fmt(s.a)}</b></div><div class="st g"><span>To'langan</span><b>${fmt(s.b)}</b></div><div class="st r"><span>Qoldiq</span><b>${fmt(s.q)}</b></div></div>
+  <div class="stats">
+    ${hasS||!hasU?`<div class="st"><span>Olingan so'm</span><b>${fmt(s.aS)}</b></div><div class="st g"><span>To'langan so'm</span><b>${fmt(s.bS)}</b></div><div class="st r"><span>Qoldiq so'm</span><b>${fmt(s.qS)}</b></div>`:''}
+    ${hasU?`<div class="st"><span>Olingan $</span><b>${fusd(s.aU)}</b></div><div class="st g"><span>To'langan $</span><b>${fusd(s.bU)}</b></div><div class="st r"><span>Qoldiq $</span><b>${fusd(s.qU)}</b></div>`:''}
+  </div>
   <div class="card" style="background:#f7f9fc"><h3>🔴 Qarzga mol olindi</h3><div class="frm">
     <label>Sana<input type="date" id="qSana" value="${defDate()}"></label>
     <label>Nima<input id="qNima" placeholder="masalan: ximiya 2 kanistr"></label>
-    <label>Summa (ming so'm)${moneyInput('qSum')}</label>
-    <label>&nbsp;<button class="btn bad" onclick="addQarz(${id})">➕ Yozish</button><div class="hint">&nbsp;</div></label>
+    <label>Valyuta${vSel('qVal')}</label>
+    <label><span id="qSumL">Summa</span><input id="qSum" inputmode="decimal" oninput="mHint(this)"><div class="hint" id="qSum_h">&nbsp;</div></label>
+    <label>&nbsp;<button class="btn bad" onclick="addQarz(${id})">➕ Yozish</button></label>
   </div></div>
   <div class="card" style="background:#f7f9fc"><h3>🟢 Qarz to'lash</h3><div class="frm">
     <label>Sana<input type="date" id="pSana" value="${defDate()}"></label>
-    <label>Summa (ming so'm)${moneyInput('pSum')}</label>
-    <label>&nbsp;<button class="btn ok" onclick="payQarz(${id})">💸 To'lash</button><div class="hint">&nbsp;</div></label>
-  </div><div class="hint">To'lov Rasxodga "QARZ TOLOV" bo'lib tushadi.</div></div>
+    <label>Valyuta${vSel('pVal')}</label>
+    <label><span id="pSumL">Summa</span><input id="pSum" inputmode="decimal" oninput="mHint(this)"><div class="hint" id="pSum_h">&nbsp;</div></label>
+    <label id="pKursW">Kurs (1$ = so'm)<input id="pKurs" inputmode="decimal" placeholder="masalan 12850" value="${esc(localStorage.getItem('cw_kurs')||'')}" oninput="mHint($('pSum'))"></label>
+    <label>&nbsp;<button class="btn ok" onclick="payQarz(${id})">💸 To'lash</button></label>
+  </div><div class="hint">To'lov Rasxodga "QARZ TOLOV" bo'lib so'mda tushadi ($ × kurs).</div></div>
   <h3>Olingan mollar</h3><div class="tw"><table><tr><th>Sana</th><th>Nima</th><th class="n">Summa</th><th></th></tr>
-  ${ol.map(q=>`<tr><td>${dmy(q.sana)}</td><td class="wrap">${esc(q.nima)}</td><td class="n">${fmt(q.summa)}</td><td class="n"><button class="ic" onclick="editQarz(${q.id})">✎</button><button class="ic" onclick="del('qarz_olingan',${q.id})">🗑</button></td></tr>`).join('')||'<tr><td colspan="4" class="empty">Yo\'q</td></tr>'}</table></div>
-  <h3 style="margin-top:12px">To'lovlar</h3><div class="tw"><table><tr><th>Sana</th><th class="n">Summa</th><th>Izoh</th><th></th></tr>
-  ${tl.map(r=>`<tr><td>${dmy(r.sana)}</td><td class="n">${fmt(r.summa)}</td><td class="wrap">${esc(r.izoh)}</td><td class="n"><button class="ic" onclick="del('rasxod',${r.id})">🗑</button></td></tr>`).join('')||'<tr><td colspan="4" class="empty">Yo\'q</td></tr>'}</table></div>
+  ${ol.map(q=>`<tr><td>${dmy(q.sana)}</td><td class="wrap">${esc(q.nima)}</td><td class="n">${qAmt(q)}</td><td class="n"><button class="ic" onclick="editQarz(${q.id})">✎</button><button class="ic" onclick="del('qarz_olingan',${q.id})">🗑</button></td></tr>`).join('')||'<tr><td colspan="4" class="empty">Yo\'q</td></tr>'}</table></div>
+  <h3 style="margin-top:12px">To'lovlar</h3><div class="tw"><table><tr><th>Sana</th><th class="n">Summa</th><th class="n">So'mda</th><th></th></tr>
+  ${tl.map(r=>`<tr><td>${dmy(r.sana)}</td><td class="n">${r.usd!=null?fusd(r.usd)+'<br><small>kurs '+fmt(r.kurs)+'</small>':fmt(r.summa)}</td><td class="n">${fmt(r.summa)}</td><td class="n"><button class="ic" onclick="del('rasxod',${r.id})">🗑</button></td></tr>`).join('')||'<tr><td colspan="4" class="empty">Yo\'q</td></tr>'}</table></div>
   <div class="row" style="margin-top:14px"><button class="btn gh sm" onclick="editYet(${id})">✎ Nomini o'zgartirish</button><span class="sp"></span><button class="btn bad sm" onclick="delYet(${id})">🗑 Yetkazuvchini o'chirish</button></div>`);
+  vChg('qVal');vChg('pVal');
 }
-async function addQarz(id){const s=k2s(val('qSum'));if(!(s>0))return alert('Summani kiriting');
-  if(await ins('qarz_olingan',{yetkazuvchi_id:id,sana:val('qSana'),nima:val('qNima').trim()||null,summa:s}))openYet(id)}
-async function payQarz(id){const y=D.yetkazuvchilar.find(v=>v.id===id);const s=k2s(val('pSum'));if(!(s>0))return alert('Summani kiriting');
-  if(await ins('rasxod',{sana:val('pSana'),summa:s,turi:'QARZ TOLOV',kimga:y.nomi,izoh:'Qarz to\'lovi'}))openYet(id)}
+async function addQarz(id){const a=readAmt('qSum','qVal');
+  const row={yetkazuvchi_id:id,sana:val('qSana'),nima:val('qNima').trim()||null,valyuta:a.v};
+  if(a.v==='USD'){if(!(a.usd>0))return alert('Summani dollarda kiriting');row.summa=0;row.usd=a.usd}
+  else{if(!(a.som>0))return alert('Summani ming so\'mda kiriting');row.summa=a.som}
+  if(await ins('qarz_olingan',row))openYet(id)}
+async function payQarz(id){const y=D.yetkazuvchilar.find(v=>v.id===id);const a=readAmt('pSum','pVal');
+  const row={sana:val('pSana'),turi:'QARZ TOLOV',kimga:y.nomi,izoh:'Qarz to\'lovi'};
+  if(a.v==='USD'){
+    if(!(a.usd>0))return alert('Summani dollarda kiriting');
+    const k=Number(String(val('pKurs')).replace(/\s/g,'').replace(',','.'));if(!(k>0))return alert('Kursni kiriting (1$ necha so\'m)');
+    localStorage.setItem('cw_kurs',String(k));
+    row.usd=a.usd;row.kurs=k;row.summa=Math.round(a.usd*k);row.izoh='Qarz to\'lovi '+fusd(a.usd)+' × '+fmt(k);
+  }else{if(!(a.som>0))return alert('Summani ming so\'mda kiriting');row.summa=a.som}
+  if(await ins('rasxod',row))openYet(id)}
 async function delYet(id){const y=D.yetkazuvchilar.find(v=>v.id===id);
   if(!confirm(`"${y.nomi}" va uning qarz yozuvlari o'chirilsinmi? (Rasxoddagi to'lovlar qoladi)`))return;
   const {error}=await tb('yetkazuvchilar').delete().eq('id',id);if(error)return alert(error.message);closeM();toast('🗑 O\'chirildi');loadAll()}
@@ -415,9 +460,12 @@ function editRasxod(id){const x=D.rasxod.find(v=>v.id===id);
   const tl=TURLAR.includes(x.turi)?TURLAR:[...TURLAR,x.turi];
   editForm('Rasxod',[{k:'sana',l:'Sana',t:'date',v:x.sana},{k:'summa',l:'Summa (ming so\'m)',t:'money',v:x.summa},{k:'turi',l:'Turi',t:'select',o:tl.map(t=>[t,t]),v:x.turi},{k:'kimga',l:'Kimga',v:x.kimga},{k:'izoh',l:'Izoh',v:x.izoh}],
     async v=>{if(!(v.summa>=0))return alert('Summa xato');if(await upd('rasxod',id,{sana:v.sana,summa:v.summa,turi:v.turi,kimga:v.kimga||null,izoh:v.izoh||null}))closeM()})}
-function editQarz(id){const x=D.qarz_olingan.find(v=>v.id===id);
-  editForm('Qarzga olingan mol',[{k:'sana',l:'Sana',t:'date',v:x.sana},{k:'nima',l:'Nima',v:x.nima},{k:'summa',l:'Summa (ming so\'m)',t:'money',v:x.summa}],
-    async v=>{if(await upd('qarz_olingan',id,{sana:v.sana,nima:v.nima||null,summa:v.summa}))openYet(x.yetkazuvchi_id)})}
+function editQarz(id){const x=D.qarz_olingan.find(v=>v.id===id);const U=x.valyuta==='USD';
+  editForm('Qarzga olingan mol',[{k:'sana',l:'Sana',t:'date',v:x.sana},{k:'nima',l:'Nima',v:x.nima},{k:'valyuta',l:'Valyuta',t:'select',o:[['UZS','so\'m'],['USD','$ dollar']],v:x.valyuta||'UZS'},{k:'miqdor',l:'Summa (so\'m bo\'lsa ming so\'mda, $ bo\'lsa dollarda)',v:U?String(+x.usd):s2k(x.summa)}],
+    async v=>{const n=Number(String(v.miqdor).replace(/\s/g,'').replace(',','.'));if(!(n>=0))return alert('Summa xato');
+      const row={sana:v.sana,nima:v.nima||null,valyuta:v.valyuta};
+      if(v.valyuta==='USD'){row.usd=Math.round(n*100)/100;row.summa=0}else{row.summa=Math.round(n*1000);row.usd=null}
+      if(await upd('qarz_olingan',id,row))openYet(x.yetkazuvchi_id)})}
 function editExson(id){const x=D.exson_berildi.find(v=>v.id===id);
   editForm('Exson',[{k:'sana',l:'Sana',t:'date',v:x.sana},{k:'summa',l:'Summa (ming so\'m)',t:'money',v:x.summa},{k:'izoh',l:'Izoh',v:x.izoh}],
     async v=>{if(await upd('exson_berildi',id,{sana:v.sana,summa:v.summa,izoh:v.izoh||null}))closeM()})}
