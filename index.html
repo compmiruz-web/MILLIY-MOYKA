@@ -361,7 +361,7 @@ input:focus,select:focus{border-color:var(--pri2);background:#fff;box-shadow:0 0
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script>
 /* ======== VERSIYA (har yangilanishda version.json bilan birga oshiriladi) ======== */
-const APP_V='2026.11.12-8';
+const APP_V='2026.11.12-9';
 
 const TURLAR=['OYLIK','XIMIYA','REMONT / EHTIYOT QISM','QARZ TOLOV','ARENDA','APARAT TOLOV','SVET','OBED','BOSHQA','BOLINMAGAN'];
 const TCOL={'OYLIK':'#dbeafe','XIMIYA':'#dcfce7','REMONT / EHTIYOT QISM':'#ffedd5','QARZ TOLOV':'#fee2e2','ARENDA':'#ede9fe','APARAT TOLOV':'#f3e8ff','SVET':'#fef9c3','OBED':'#f1f5f9','BOSHQA':'#e2e8f0','BOLINMAGAN':'#e5e7eb'};
@@ -641,12 +641,39 @@ async function editFoiz(){const v=await ask('Exson foizi (%):',D.foiz);if(v===nu
 
 /* ---------- EXCEL ---------- */
 function exportXlsx(){
-  const wb=XLSX.utils.book_new(),ms=months();
-  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([['OY','TUSHUM','RASXOD','SOF FOYDA','EXSON'],...ms.map(m=>{const s=oyStat(m);return [oyNom(m),s.t,s.r,s.f,+s.ex.toFixed(1)]})]),'XISOBOT');
-  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([['SANA','TUSHUM','IZOH'],...D.tushum.map(r=>[dmy(r.sana),+r.summa,r.izoh||''])]),'KUNLIK TUSHUM');
-  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([['SANA','SUMMA','TURI','KIMGA','IZOH'],...D.rasxod.map(r=>[dmy(r.sana),+r.summa,r.turi,r.kimga||'',r.izoh||''])]),'KUNLIK RASXOD');
-  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([['SANA','KIM','NIMA','SUMMA'],...D.qarzOl.map(q=>[dmy(q.sana),q.kim,q.nima||'',+q.summa])]),'QARZGA OLINGAN');
-  XLSX.writeFile(wb,'MILLIY_MOYKA_'+today()+'.xlsx');
+  // Ko'rinish: "SAMMOYKA KUNLIK XISOB KITOB" fayli kabi — har oy alohida varaq, summalar ming so'mda
+  const wb=XLSX.utils.book_new(), ms=months().filter(m=>D.tushum.some(r=>ym(r.sana)===m)||D.rasxod.some(r=>ym(r.sana)===m));
+  const OY=['YANVAR','FEVRAL','MART','APREL','MAY','IYUN','IYUL','AVGUST','SENTYABR','OKTYABR','NOYABR','DEKABR'];
+  const ming=v=>Math.round((+v||0)/K*100)/100;
+  const ser=d=>{const[y,m,dd]=d.split('-').map(Number);return Date.UTC(y,m-1,dd)/864e5+25569};
+  const dcell=d=>({t:'n',v:ser(d),z:'dd.mm.yyyy'});
+  const used=new Set();
+  ms.forEach(k=>{
+    const [y,m]=k.split('-').map(Number), n=new Date(Date.UTC(y,m,0)).getUTCDate();
+    const aoa=[['SANA ','DAROMAT','SANA ','RASXOD','SABAB','OSTATKA','OYLIK DAROMAD JAMI',(D.foiz||5)/100]];
+    for(let d=1;d<=n;d++){
+      const ds=`${k}-${String(d).padStart(2,'0')}`, t=D.tushum.find(r=>r.sana===ds), rs=D.rasxod.filter(r=>r.sana===ds);
+      const rsum=rs.reduce((a,r)=>a+ +r.summa,0);
+      const sabab=rs.map(r=>{const kg=(r.kimga||'').trim(), iz=(r.izoh||'').trim(); const nm=(iz&&kg&&iz.toUpperCase().includes(kg.toUpperCase())?iz:[kg,iz].filter(Boolean).join(' '))||r.turi||'';return `${nm.toUpperCase()} - ${ming(r.summa)}`}).join('   ');
+      aoa.push([ds,t?ming(t.summa):(ds<=today()?0:null),ds,rs.length?ming(rsum):(ds<=today()?0:null),sabab||null,null,null,null]);
+    }
+    const ws=XLSX.utils.aoa_to_sheet(aoa);
+    for(let r=2;r<=n+1;r++){ws['A'+r]=dcell(aoa[r-1][0]);ws['C'+r]=dcell(aoa[r-1][2]);}
+    ws['F2']={t:'n',f:'SUM(B:B)-SUM(D:D)'}; ws['G2']={t:'n',f:'SUM(B:B)'};
+    ws['!cols']=[{wch:15},{wch:14},{wch:15},{wch:12},{wch:Math.min(120,Math.max(30,...aoa.map(a=>String(a[4]||'').length)))},{wch:13},{wch:30},{wch:9}];
+    let nm=OY[m-1]; if(used.has(nm)) nm+=' '+y; used.add(nm);
+    XLSX.utils.book_append_sheet(wb,ws,nm);
+  });
+  // Qarzlar: "QARZLARIMIZ → KUNLIK" varag'i kabi
+  const qa=[['SOTUVCHILAR ','OSTATKA','SANA','YANGI QARZ','SANA','SUMMA','OSTATKA QARZ',"TO'LANDI"]];
+  D.yet.forEach(y=>{const st=qStat(y), ol=D.qarzOl.filter(q=>q.kim===y.kim), lo=ol.map(q=>q.sana).sort().pop()||'', lp=st.pays.map(r=>r.sana).sort().pop()||'';
+    qa.push([y.kim,ming(st.b),lo||null,ol.map(q=>`${q.nima||'MOL'} - ${ming(q.summa)}`).join('  ')||0,lp||null,ming(st.o),null,ming(st.t)]);});
+  const wq=XLSX.utils.aoa_to_sheet(qa);
+  for(let r=2;r<=qa.length;r++){ if(qa[r-1][2]) wq['C'+r]=dcell(qa[r-1][2]); if(qa[r-1][4]) wq['E'+r]=dcell(qa[r-1][4]); wq['G'+r]={t:'n',f:`B${r}+F${r}-H${r}`}; }
+  wq['!cols']=[{wch:25},{wch:15},{wch:11},{wch:40},{wch:11},{wch:13},{wch:24},{wch:12}];
+  XLSX.utils.book_append_sheet(wb,wq,'QARZLAR');
+  const t=today().split('-').reverse().join('.');
+  XLSX.writeFile(wb,`SAMMOYKA KUNLIK XISOB KITOB ${t}.xlsx`);
 }
 
 /* ---------- SUMMA KO'RINISHI (212 -> 212 000 so'm) ---------- */
