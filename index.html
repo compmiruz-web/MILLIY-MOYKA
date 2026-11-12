@@ -394,7 +394,7 @@ input:focus,select:focus{border-color:var(--pri2);background:#fff;box-shadow:0 0
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script>
 /* ======== VERSIYA (har yangilanishda version.json bilan birga oshiriladi) ======== */
-const APP_V='2026.11.12-13';
+const APP_V='2026.11.12-14';
 
 const TURLAR=['OYLIK','XIMIYA','REMONT / EHTIYOT QISM','QARZ TOLOV','ARENDA','APARAT TOLOV','SVET','OBED','BOSHQA','BOLINMAGAN'];
 const TCOL={'OYLIK':'#dbeafe','XIMIYA':'#dcfce7','REMONT / EHTIYOT QISM':'#ffedd5','QARZ TOLOV':'#fee2e2','ARENDA':'#ede9fe','APARAT TOLOV':'#f3e8ff','SVET':'#fef9c3','OBED':'#f1f5f9','BOSHQA':'#e2e8f0','BOLINMAGAN':'#e5e7eb'};
@@ -696,12 +696,12 @@ function renderSherik(){
       <div style="background:#fef2f2;border-radius:12px;padding:10px 12px"><div class="muted" style="font-size:12px;font-weight:600">QARZ QOLDIG'I</div><div style="font-weight:800;font-size:18px" class="neg">${two(c.tot)}</div></div>
       <div style="background:#eff6ff;border-radius:12px;padding:10px 12px"><div class="muted" style="font-size:12px;font-weight:600">SHAXSIY PUL</div><div style="font-weight:800;font-size:18px">${two(c.own)}</div></div></div>
     <div class="tw"><table><thead><tr><th>Haqdor</th><th class="n">Olingan</th><th class="n">Berilgan</th><th class="n">Qoldiq</th><th></th></tr></thead><tbody>
-      ${c.act.map(x=>`<tr><td><b>${esc(x.xaqdor)}</b>${x.izoh.length?`<div class="muted" style="font-size:12px">${esc(x.izoh.join(', '))}</div>`:''}</td><td class="n">${two(x.o)}</td><td class="n">${two(x.t)}</td><td class="n neg"><b>${two(x.q)}</b></td>
+      ${c.act.map(x=>`<tr><td>${isBoss()?`<button class="ib" style="float:right;margin-left:6px" title="Tahrirlash" onclick="shHaq(${q(x.xaqdor)})">✎</button>`:''}<b>${esc(x.xaqdor)}</b>${x.izoh.length?`<div class="muted" style="font-size:12px">${esc(x.izoh.join(', '))}</div>`:''}</td><td class="n">${two(x.o)}</td><td class="n">${two(x.t)}</td><td class="n neg"><b>${two(x.q)}</b></td>
         <td class="n"><button class="ib w ${can('qarz_ber')?'':'noperm'}" title="Qarz berish" onclick="$('sqtX').value=${q(x.xaqdor)};$('sqtSum').focus()">💸</button></td></tr>`).join('')||'<tr><td colspan="5" class="empty">Qarz yo\'q</td></tr>'}
     </tbody></table></div>
     ${shHist?`<div style="margin-top:12px;border:2px solid #cfe0f5;border-radius:12px;padding:10px">
       <h4 style="margin:0 0 8px">✅ Qarzdan qutilganlar (${c.done.length})</h4>
-      ${c.done.length?`<div class="tw"><table><tbody>${c.done.map(x=>`<tr style="background:#ecfdf5"><td><b>${esc(x.xaqdor)}</b></td><td class="n">${two(x.o)}</td><td>${x.last?dmy(x.last):''}</td></tr>`).join('')}</tbody></table></div>`:'<div class="muted">Hali yo\'q</div>'}
+      ${c.done.length?`<div class="tw"><table><tbody>${c.done.map(x=>`<tr style="background:#ecfdf5"><td><b>${esc(x.xaqdor)}</b></td><td class="n">${two(x.o)}</td><td>${x.last?dmy(x.last):''}</td><td class="n">${isBoss()?`<button class="ib" title="Tahrirlash" onclick="shHaq(${q(x.xaqdor)})">✎</button>`:''}</td></tr>`).join('')}</tbody></table></div>`:'<div class="muted">Hali yo\'q</div>'}
       <h4 style="margin:12px 0 8px">📜 Barcha yozuvlar</h4>
       <div class="tw"><table><thead><tr><th>Sana</th><th>Turi</th><th>Haqdor</th><th class="n">Summa</th><th>Izoh</th><th></th></tr></thead><tbody>
       ${c.R.slice().sort((a,b)=>a.sana<b.sana?1:-1).map(r=>`<tr><td>${dmy(r.sana)}</td><td>${r.turi==='qarz'?'<span class="pill" style="background:#fee2e2;color:#b91c1c">Qarz olindi</span>':r.turi==='tolov'?'<span class="pill" style="background:#d1fae5;color:#047857">Qarz berildi</span>':'<span class="pill" style="background:#dbeafe;color:#1d4ed8">Shaxsiy pul</span>'}</td><td>${esc(r.xaqdor||'')}</td>
@@ -777,6 +777,19 @@ async function editSq(id){const r=(D.shq||[]).find(x=>x.id===id); if(!r) return;
   if(r.rasxod_id){const k=nu?(+v.kurs||+r.kurs||0):null; if(nu&&!(k>0)) return toast('Kursni kiriting'); row.kurs=k;
     const {error}=await sb.from('rasxod').update({sana:v.sana,summa:nu?Math.round(sm*k):sm,summa_usd:nu?sm:null,kurs:k,kimga:row.xaqdor||r.xaqdor}).eq('id',r.rasxod_id); if(error) return err(error);}
   run(sb.from('sherik_qarz').update(row).eq('id',id),'Saqlandi')}
+function shHaq(name){ if(!isBoss()) return;
+  const R=shRows(shSel).filter(r=>r.turi!=='shaxsiy'&&(r.xaqdor||'—').trim().toUpperCase()===name).sort((a,b)=>a.sana<b.sana?-1:1);
+  $('edT').textContent='✎ '+name;
+  $('edF').innerHTML=`<div><label>Haqdor nomi</label><input id="hqIsm" value="${esc(name)}"></div>
+    <div class="muted" style="font-size:12px;margin-top:4px">Yozuvlar — summani to'g'rilash uchun ✎, o'chirish uchun 🗑 bosing:</div>
+    <div class="tw"><table><tbody>${R.map(r=>`<tr><td>${dmy(r.sana)}<div class="muted" style="font-size:11px">${r.turi==='qarz'?'Qarz olindi':'Qarz berildi'}${r.izoh?' · '+esc(r.izoh):''}</div></td>
+      <td class="n"><b>${r.valyuta==='usd'?fmtU(r.summa):fmt(r.summa)+" so'm"}</b></td>
+      <td class="n" style="white-space:nowrap"><button type="button" class="ib" onclick="closeM('edModal');editSq(${r.id})">✎</button><button type="button" class="ib" onclick="closeM('edModal');shDel(${r.id})">🗑</button></td></tr>`).join('')}</tbody></table></div>`;
+  openM('edModal');
+  $('edNo').onclick=()=>closeM('edModal');
+  $('edOk').onclick=()=>{const n=up($('hqIsm').value); closeM('edModal'); if(!n||n===name) return;
+    run(sb.from('sherik_qarz').update({xaqdor:n}).in('id',R.map(r=>r.id)),'Saqlandi');};
+}
 async function editSherik(ism){
   const v=await form2('✎ Sherik',[{k:'ism',l:'Ismi',v:ism},{k:'del',l:"O'chirish (barcha yozuvlari bilan)",t:'sel',o:[['0',"Yo'q"],['1',"Ha, o'chirilsin"]],v:'0'}]); if(!v) return;
   if(v.del==='1'){ if(!await ask(`${ism} va uning barcha qarz yozuvlari o'chirilsinmi? Qaytarib bo'lmaydi.`)) return; shSel=null; return run(sb.from('sheriklar').delete().eq('ism',ism),"O'chirildi"); }
