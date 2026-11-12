@@ -350,7 +350,7 @@ input:focus,select:focus{border-color:var(--pri2);background:#fff;box-shadow:0 0
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script>
 /* ======== VERSIYA (har yangilanishda version.json bilan birga oshiriladi) ======== */
-const APP_V='2026.11.12-6';
+const APP_V='2026.11.12-7';
 
 const TURLAR=['OYLIK','XIMIYA','REMONT / EHTIYOT QISM','QARZ TOLOV','ARENDA','APARAT TOLOV','SVET','OBED','BOSHQA','BOLINMAGAN'];
 const TCOL={'OYLIK':'#dbeafe','XIMIYA':'#dcfce7','REMONT / EHTIYOT QISM':'#ffedd5','QARZ TOLOV':'#fee2e2','ARENDA':'#ede9fe','APARAT TOLOV':'#f3e8ff','SVET':'#fef9c3','OBED':'#f1f5f9','BOSHQA':'#e2e8f0','BOLINMAGAN':'#e5e7eb'};
@@ -554,7 +554,7 @@ function renderQarz(){
   const act=st.filter(x=>!x.done), done=st.filter(x=>x.done);
   $('tblQarz').innerHTML='<thead><tr><th>Kim</th><th class="n">Boshlang\'ich</th><th class="n">Olindi</th><th class="n">To\'landi</th><th class="n">Qoldiq qarz</th><th></th></tr></thead><tbody>'+
     (act.map(({y,i,b,o,t,q})=>{B+=b;O+=o;T+=t;
-      return `<tr><td><b>${esc(y.kim)}</b></td><td class="n">${fmt(b)}</td><td class="n">${fmt(o)}</td><td class="n">${fmt(t)}</td><td class="n ${q>0?'neg':q<0?'muted':''}"><b>${fmt(q)}</b></td><td class="n"><button class="ib" title="Boshlang'ich qarz" onclick="editBosh(${i})">✎</button></td></tr>`;
+      return `<tr><td><b>${esc(y.kim)}</b></td><td class="n">${fmt(b)}</td><td class="n">${fmt(o)}</td><td class="n">${fmt(t)}</td><td class="n ${q>0?'neg':q<0?'muted':''}"><b>${fmt(q)}</b></td><td class="n" style="white-space:nowrap"><button class="ib" title="Boshlang'ich qarz" onclick="editBosh(${i})">✎</button><button class="ib" title="O'chirish" onclick="delSup(${i})">🗑</button></td></tr>`;
     }).join('')||'<tr><td colspan="6" class="empty">🎉 Hozir hech kimdan qarz yo\'q</td></tr>')+`<tr class="tot"><td>JAMI</td><td class="n">${fmt(B)}</td><td class="n">${fmt(O)}</td><td class="n">${fmt(T)}</td><td class="n">${fmt(B+O-T)}</td><td></td></tr></tbody>`;
   const opts=D.yet.map(y=>`<option>${esc(y.kim)}</option>`).join('');$('qoKim').innerHTML=opts;$('qtKim').innerHTML=opts;
   const actK=new Set(act.map(x=>x.y.kim)), olA=D.qarzOl.filter(q=>actK.has(q.kim));
@@ -567,8 +567,8 @@ function renderQarz(){
   const box=$('qHistBox'); box.classList.toggle('hide',!qHist); if(!qHist) return;
   box.innerHTML=`<h3>🕓 Tarix <button class="ib" style="margin-left:auto" title="Yopish" onclick="qHist=false;renderQarz()">✕</button></h3>
     <h4 style="margin:6px 0 8px">✅ Qarzdan qutilganlar (${done.length})</h4>
-    <div class="tw"><table>${done.length?'<thead><tr><th>Kim</th><th class="n">Jami olindi</th><th class="n">Jami to\'landi</th><th>Qutilgan sana</th></tr></thead><tbody>'+
-      done.sort((a,b)=>a.last<b.last?1:-1).map(x=>`<tr style="background:#ecfdf5"><td><b>${esc(x.y.kim)}</b> <span class="pill" style="background:#d1fae5;color:#047857">Qarz yo'q</span></td><td class="n">${fmt(x.b+x.o)}</td><td class="n">${fmt(x.t)}</td><td>${x.last?dmy(x.last):'—'}</td></tr>`).join('')+'</tbody>':'<tr><td class="empty">Hali qarzdan to\'liq qutilgan yetkazuvchi yo\'q</td></tr>'}</table></div>
+    <div class="tw"><table>${done.length?'<thead><tr><th>Kim</th><th class="n">Jami olindi</th><th class="n">Jami to\'landi</th><th>Qutilgan sana</th><th></th></tr></thead><tbody>'+
+      done.sort((a,b)=>a.last<b.last?1:-1).map(x=>`<tr style="background:#ecfdf5"><td><b>${esc(x.y.kim)}</b> <span class="pill" style="background:#d1fae5;color:#047857">Qarz yo'q</span></td><td class="n">${fmt(x.b+x.o)}</td><td class="n">${fmt(x.t)}</td><td>${x.last?dmy(x.last):'—'}</td><td class="n"><button class="ib" title="O'chirish" onclick="delSup(${x.i})">🗑</button></td></tr>`).join('')+'</tbody>':'<tr><td class="empty">Hali qarzdan to\'liq qutilgan yetkazuvchi yo\'q</td></tr>'}</table></div>
     <h4 style="margin:16px 0 8px">💸 Berilgan qarzlar (to'lovlar) — ${allPays.length} ta · jami ${fmt(allPays.reduce((a,r)=>a+ +r.summa,0))}</h4>
     <div class="tw"><table>${allPays.length?'<thead><tr><th>Sana</th><th>Kimga</th><th class="n">Summa</th><th>Izoh</th><th></th></tr></thead><tbody>'+
       allPays.map(r=>`<tr><td>${dmy(r.sana)}</td><td><b>${esc(r.kimga||'')}</b>${done.some(x=>x.y.kim===r.kimga)?' <span class="pill" style="background:#d1fae5;color:#047857">✓</span>':''}</td><td class="n pos"><b>${fmt(r.summa)}</b></td><td class="muted">${esc(r.izoh||'')}</td><td class="n"><button class="ib" onclick="del('rasxod',${r.id})">🗑</button></td></tr>`).join('')+'</tbody>':'<tr><td class="empty">Hali qarz to\'lanmagan</td></tr>'}</table></div>
@@ -605,6 +605,15 @@ async function payQarz(e){e.preventDefault();
   if(await run(sb.from('rasxod').insert({sana:$('qtSana').value,summa:inp('qtSum'),turi:'QARZ TOLOV',kimga:$('qtKim').value,izoh:$('qtIzoh').value||null}),"To'lov yozildi")){$('qtSum').value='';$('qtIzoh').value=''}}
 async function addSup(e){e.preventDefault();
   if(await run(sb.from('yetkazuvchilar').insert({kim:up($('ysIsm').value),boshlangich_qarz:inp('ysQarz')}),"Qo'shildi")){$('ysIsm').value='';$('ysQarz').value=0}}
+async function delSup(i){const y=D.yet[i]; if(!y) return;
+  const st=qStat(y), nOl=D.qarzOl.filter(q=>q.kim===y.kim).length;
+  if(!await ask(`🗑 ${y.kim} — yetkazuvchi va unga yozilgan ${nOl} ta "qarzga olingan mol" o'chirilsinmi? Qaytarib bo'lmaydi.`)) return;
+  let delPay=false;
+  if(st.pays.length) delPay=!!await ask(`${y.kim} ga berilgan ${st.pays.length} ta to'lov (jami ${fmt(st.t)}) Rasxodlarda ham turibdi. Ularni ham o'chiraymi? ("Bekor" — to'lovlar rasxodda qoladi)`);
+  if(delPay){const {error}=await sb.from('rasxod').delete().eq('turi','QARZ TOLOV').eq('kimga',y.kim); if(error) return err(error);}
+  const {error:e1}=await sb.from('qarz_olingan').delete().eq('kim',y.kim); if(e1) return err(e1);
+  run(sb.from('yetkazuvchilar').delete().eq('kim',y.kim),"O'chirildi");
+}
 async function editBosh(i){const y=D.yet[i];const v=await ask(y.kim+" — boshlang'ich qarz (ming so'm):",kv(y.boshlangich_qarz));if(v===null)return;
   run(sb.from('yetkazuvchilar').update({boshlangich_qarz:Math.round((+v||0)*K)}).eq('kim',y.kim),'Saqlandi')}
 async function payOylik(e){e.preventDefault();
