@@ -101,3 +101,19 @@ alter table qarz_olingan drop constraint if exists qarz_olingan_valyuta_check;
 alter table qarz_olingan add constraint qarz_olingan_valyuta_check check (valyuta in ('uzs','usd'));
 alter table rasxod add column if not exists summa_usd numeric;
 alter table rasxod add column if not exists kurs numeric;
+
+-- ===== 2026-11-12: sheriklar qarzi =====
+create table if not exists sheriklar (ism text primary key, tartib int not null default 0);
+create table if not exists sherik_qarz (
+  id bigserial primary key,
+  sherik text not null references sheriklar(ism) on update cascade on delete cascade,
+  turi text not null default 'qarz' check (turi in ('qarz','tolov','shaxsiy')),
+  xaqdor text, sana date not null default current_date,
+  summa numeric not null check (summa > 0),
+  valyuta text not null default 'usd' check (valyuta in ('uzs','usd')),
+  kurs numeric, izoh text,
+  rasxod_id bigint references rasxod(id) on delete set null,
+  created_at timestamptz default now()
+);
+-- RLS: faqat_ruxsatli (ruxsat_bormi()) — boshqa jadvallar kabi
+insert into sheriklar(ism,tartib) values ('ABDULMUHSIN',1),('MUHAMMADUMAR',2) on conflict do nothing;
