@@ -9,7 +9,8 @@ Faqat CRYSTAL WASH SAM MOYKA xisob-kitob dasturi. MILLIY-MOYKA, COMPMIR, COM-TEC
   - CRYSTAL WASH jadvallari faqat cw_ bilan boshlanadi; MILLIY-MOYKA jadvallariga (prefikssiz) tegilmaydi
   - Loginlar: @crystalwash.app (MILLIY-MOYKA: @sammoyka.app)
   - MILLIY trigger yangi_foydalanuvchiga_ruxsat faqat @sammoyka.app loginlariga ruxsat beradigan qilib cheklandi (aks holda CRYSTAL WASH loginlari MILLIY'ga ishchi bo'lib qo'shilardi)
-- GitHub repo: hali ochilmagan (taklif: compmiruz-web/crystal-wash)
+- GitHub: compmiruz-web/MILLIY-MOYKA repo ichida alohida papka crystal-wash/ (rahbar qarori). MILLIY fayllariga tegilmaydi
+- Link: https://compmiruz-web.github.io/MILLIY-MOYKA/crystal-wash/
 
 ## Fayllar
 - index.html — butun dastur (HTML+CSS+JS). Tepada: APP_V, SB_URL, SB_KEY
