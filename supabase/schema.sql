@@ -93,3 +93,11 @@ begin
 end $$;
 drop trigger if exists ruxsat_avtomatik on auth.users;
 create trigger ruxsat_avtomatik after insert on auth.users for each row execute function public.yangi_foydalanuvchiga_ruxsat();
+
+-- ===== 2026-11-12: qarzlar so'mda va dollarda =====
+alter table yetkazuvchilar add column if not exists boshlangich_usd numeric not null default 0;
+alter table qarz_olingan add column if not exists valyuta text not null default 'uzs';
+alter table qarz_olingan drop constraint if exists qarz_olingan_valyuta_check;
+alter table qarz_olingan add constraint qarz_olingan_valyuta_check check (valyuta in ('uzs','usd'));
+alter table rasxod add column if not exists summa_usd numeric;
+alter table rasxod add column if not exists kurs numeric;
