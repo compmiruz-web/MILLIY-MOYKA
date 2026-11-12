@@ -134,6 +134,9 @@ form.v{display:grid;gap:10px}
 label{font-size:12px;color:var(--mut);font-weight:600;display:block;margin-bottom:5px}
 input,select{width:100%;padding:11px 12px;border:1.5px solid #dbe3ee;border-radius:12px;font-size:15px;background:#fbfdff;color:var(--tx);outline:none;transition:.15s}
 form.f>*{min-width:0}
+.ishchi .own{display:none!important}
+.ishchi .ib:not(.w){display:none!important}
+.noperm{display:none!important}
 form.f{row-gap:24px}form.f>div{position:relative}form.f .kprev{position:absolute;left:0;top:100%;margin-top:3px;white-space:nowrap}
 form.f input,form.f select,form.f .btn{height:46px}
 form.f label{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -201,15 +204,17 @@ input:focus,select:focus{border-color:var(--pri2);background:#fff;box-shadow:0 0
 <header>
   <div class="brand"><div class="ic">🚗</div><div><b>MILLIY MOYKA</b><small>Xisob-kitob</small></div></div>
   <select id="oySel" class="hbtn" onchange="render()"></select>
-  <button class="hbtn exbadge" onclick="openExson()" title="Olloh yo'lidagi exson">🤲<span class="t" id="exBadgeTxt">Exson</span><span class="dot" id="exDot">0</span></button>
+  <span id="meTag" class="hbtn" style="font-size:12px;font-weight:700;cursor:default"></span>
+  <button class="hbtn exbadge own" onclick="openExson()" title="Olloh yo'lidagi exson">🤲<span class="t" id="exBadgeTxt">Exson</span><span class="dot" id="exDot">0</span></button>
   <button class="hbtn" onclick="logout()" title="Chiqish">🚪</button>
 </header>
 <nav id="tabs">
-  <button data-t="xisobot" class="on"><span class="i">📊</span>Xisobot</button>
+  <button data-t="xisobot" class="on own"><span class="i">📊</span>Xisobot</button>
   <button data-t="tushum"><span class="i">💵</span>Tushum</button>
   <button data-t="rasxod"><span class="i">🧾</span>Rasxod</button>
   <button data-t="qarz"><span class="i">📦</span>Qarzlar</button>
-  <button data-t="oylik"><span class="i">👷</span>Oylik</button>
+  <button data-t="oylik" class="own"><span class="i">👷</span>Oylik</button>
+  <button data-t="ishchi" class="own"><span class="i">👥</span>Profillar</button>
 </nav>
 <main>
 
@@ -237,7 +242,7 @@ input:focus,select:focus{border-color:var(--pri2);background:#fff;box-shadow:0 0
   <section id="t-tushum" class="hide">
     <div class="sect-t">💵 Kunlik tushum</div>
     <div class="card">
-      <form class="f" onsubmit="saveTushum(event)">
+      <form class="f" data-perm="tushum" onsubmit="saveTushum(event)">
         <div><label>Sana</label><input type="date" id="tuSana" required></div>
         <div><label>Summa (ming so'mda)</label><input type="number" step="any" inputmode="decimal" id="tuSum" data-k required placeholder="0"></div>
         <div><label>Izoh</label><input id="tuIzoh" placeholder="ixtiyoriy"></div>
@@ -252,7 +257,7 @@ input:focus,select:focus{border-color:var(--pri2);background:#fff;box-shadow:0 0
   <section id="t-rasxod" class="hide">
     <div class="sect-t">🧾 Rasxodlar</div>
     <div class="card">
-      <form class="f" onsubmit="saveRasxod(event)">
+      <form class="f" data-perm="rasxod" onsubmit="saveRasxod(event)">
         <input type="hidden" id="raId">
         <div><label>Sana</label><input type="date" id="raSana" required></div>
         <div><label>Summa (ming so'mda)</label><input type="number" step="any" inputmode="decimal" id="raSum" data-k required placeholder="0"></div>
@@ -275,7 +280,7 @@ input:focus,select:focus{border-color:var(--pri2);background:#fff;box-shadow:0 0
     <div class="card"><h3>🔴 Hozirgi qarzlar</h3><div class="tw"><table id="tblQarz"></table></div></div>
     <div class="card" style="margin-top:14px" id="shBox"></div>
     <div class="grid g3f" style="margin-top:14px">
-      <div class="card"><h3>🔴 Qarzga mol olindi</h3>
+      <div class="card" data-perm="qarz_ol"><h3>🔴 Qarzga mol olindi</h3>
         <form class="v" onsubmit="addQarz(event)">
           <div><label>Sana</label><input type="date" id="qoSana" required></div>
           <div><label>Kimdan</label><select id="qoKim" required></select></div>
@@ -284,7 +289,7 @@ input:focus,select:focus{border-color:var(--pri2);background:#fff;box-shadow:0 0
           <div><label id="qoSumL">Summa (ming so'mda)</label><input type="number" step="any" inputmode="decimal" id="qoSum" data-k required></div>
           <button class="btn r">Qarzga yozish</button>
         </form></div>
-      <div class="card"><h3>🟢 Qarz to'lash</h3>
+      <div class="card" data-perm="qarz_ber"><h3>🟢 Qarz to'lash</h3>
         <form class="v" onsubmit="payQarz(event)">
           <div><label>Sana</label><input type="date" id="qtSana" required></div>
           <div><label>Kimga</label><select id="qtKim" required onchange="qtHint()"></select><div class="kprev" id="qtHint"></div></div>
@@ -294,7 +299,7 @@ input:focus,select:focus{border-color:var(--pri2);background:#fff;box-shadow:0 0
           <div><label>Izoh</label><input id="qtIzoh"></div>
           <button class="btn g">To'lash</button>
         </form></div>
-      <div class="card"><h3>➕ Yangi yetkazuvchi</h3>
+      <div class="card" data-perm="qarz_ol"><h3>➕ Yangi yetkazuvchi</h3>
         <form class="v" onsubmit="addSup(event)">
           <div><label>Ism</label><input id="ysIsm" required></div>
           <div><label>Boshlang'ich qarz (ming so'm)</label><input type="number" step="any" id="ysQarz" data-k value="0"></div>
@@ -326,6 +331,23 @@ input:focus,select:focus{border-color:var(--pri2);background:#fff;box-shadow:0 0
         </form></div>
     </div>
   </section>
+  <!-- PROFILLAR (faqat rahbar) -->
+  <section id="t-ishchi" class="hide">
+    <div class="sect-t">👥 Profillar va ishchi rejimi</div>
+    <div class="card" id="prRejim"></div>
+    <div class="card" style="margin-top:14px"><h3>👤 Profillar</h3><div class="tw"><table id="tblProf"></table></div></div>
+    <div class="card" style="margin-top:14px"><h3>➕ Yangi profil</h3>
+      <form class="f" onsubmit="prNew(event)">
+        <div><label>Ismi</label><input id="prIsm" required placeholder="masalan: Abdulboqiy"></div>
+        <div><label>Login (lotincha)</label><input id="prLogin" required autocapitalize="off" placeholder="masalan: boqiy"></div>
+        <div><label>PIN (kamida 4 raqam)</label><input id="prPin" required inputmode="numeric" minlength="4" autocomplete="new-password"></div>
+        <div><label>Rol</label><select id="prRol"><option value="ishchi">Ishchi</option><option value="rahbar">Rahbar</option></select></div>
+        <div style="grid-column:1/-1;display:flex;gap:14px;flex-wrap:wrap;font-size:14px" id="prPerms"></div>
+        <button class="btn">➕ Profil ochish</button>
+      </form>
+      <p class="muted" style="margin:10px 0 0">Ishchi shu login va PIN bilan dasturga kiradi. Ishchi faqat ruxsat berilgan narsani <b>qo'sha oladi</b> — o'zgartirish va o'chirish faqat rahbarda. Xisobot, Oylik, Exson va foyda ishchiga ko'rinmaydi.</p>
+    </div>
+  </section>
 </main>
 </div>
 
@@ -351,6 +373,10 @@ input:focus,select:focus{border-color:var(--pri2);background:#fff;box-shadow:0 0
 </div>
 
 <!-- Umumiy so'rov oynasi -->
+<div id="edModal" class="modal hide">
+  <div class="card"><h3 id="edT"></h3><form id="edF" class="v"></form>
+    <div class="grid" style="grid-template-columns:1fr 1fr;gap:10px;margin-top:12px"><button class="btn s" id="edNo" type="button">Bekor</button><button class="btn" id="edOk" type="button">💾 Saqlash</button></div></div>
+</div>
 <div id="askModal" class="modal hide">
   <div class="card">
     <h3 id="askT"></h3>
@@ -368,7 +394,7 @@ input:focus,select:focus{border-color:var(--pri2);background:#fff;box-shadow:0 0
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script>
 /* ======== VERSIYA (har yangilanishda version.json bilan birga oshiriladi) ======== */
-const APP_V='2026.11.12-12';
+const APP_V='2026.11.12-13';
 
 const TURLAR=['OYLIK','XIMIYA','REMONT / EHTIYOT QISM','QARZ TOLOV','ARENDA','APARAT TOLOV','SVET','OBED','BOSHQA','BOLINMAGAN'];
 const TCOL={'OYLIK':'#dbeafe','XIMIYA':'#dcfce7','REMONT / EHTIYOT QISM':'#ffedd5','QARZ TOLOV':'#fee2e2','ARENDA':'#ede9fe','APARAT TOLOV':'#f3e8ff','SVET':'#fef9c3','OBED':'#f1f5f9','BOSHQA':'#e2e8f0','BOLINMAGAN':'#e5e7eb'};
@@ -450,7 +476,20 @@ async function start(){
   const {data}=await sb.auth.getSession();
   data.session?enter():show('login');
 }
-async function enter(){show('app');$('loading').classList.remove('hide');await loadAll();setDefaults();render();$('loading').classList.add('hide')}
+async function enter(){show('app');$('loading').classList.remove('hide');
+  const {data:me}=await sb.rpc('men'); D.me=me||{rol:'ishchi',ruxsat:{}};
+  if(D.me.rol!=='rahbar'&&(!D.me.faol||!D.me.rejim)){$('loading').classList.add('hide');await ask(!D.me.faol?"Profilingiz o'chirilgan. Rahbarga murojaat qiling.":"Ishchi rejimi hozir o'chirilgan. Rahbarga murojaat qiling.");await sb.auth.signOut();return show('login');}
+  applyRole();await loadAll();setDefaults();render();$('loading').classList.add('hide')}
+const isBoss=()=>D.me&&D.me.rol==='rahbar';
+const can=k=>isBoss()||!!(D.me&&D.me.ruxsat&&D.me.ruxsat[k]);
+function applyRole(){
+  const boss=isBoss(); document.body.classList.toggle('ishchi',!boss);
+  $('meTag').textContent=(boss?'👑 ':'👷 ')+(D.me.ism||'');
+  document.querySelectorAll('[data-perm]').forEach(e=>e.classList.toggle('noperm',!can(e.dataset.perm)));
+  if(!boss){const first=['tushum','rasxod','qarz'].find(t=>t==='tushum'?can('tushum'):t==='rasxod'?can('rasxod'):(can('qarz_ol')||can('qarz_ber')))||'qarz';
+    const b=document.querySelector(`#tabs button[data-t="${first}"]`); b&&b.click();
+    ['tushum','rasxod'].forEach(t=>{const b=document.querySelector(`#tabs button[data-t="${t}"]`); if(b) b.classList.toggle('noperm',!can(t));});}
+}
 
 /* ---------- MA'LUMOT ---------- */
 async function all(table,order){
@@ -465,7 +504,8 @@ async function loadAll(){
   try{
     const [t,r,y,q,x,e,s,sh,sq]=await Promise.all([all('tushum','sana'),all('rasxod','sana'),all('yetkazuvchilar','kim'),all('qarz_olingan','sana'),all('xodimlar','ism'),all('exson_berildi','sana'),all('sozlamalar','kalit'),all('sheriklar','tartib').catch(()=>[]),all('sherik_qarz','sana').catch(()=>[])]);
     D.tushum=t;D.rasxod=r;D.yet=y;D.qarzOl=q;D.xod=x;D.exson=e;D.sher=sh;D.shq=sq;
-    const f=s.find(z=>z.kalit==='exson_foiz');D.foiz=f?+f.qiymat:5;
+    const f=s.find(z=>z.kalit==='exson_foiz');D.foiz=f?+f.qiymat:5;D.soz=s;
+    if(!D.uid){const {data:u}=await sb.auth.getUser();D.uid=u?.user?.id;}
   }catch(e){err(e)}
 }
 // Boshqa qurilmada kiritilgan ma'lumot o'zi ko'rinsin
@@ -474,7 +514,7 @@ setInterval(async()=>{if(!document.hidden&&!$('app').classList.contains('hide'))
 
 function setDefaults(){
   ['tuSana','raSana','qoSana','qtSana','opSana','exSana'].forEach(i=>{if(!$(i).value)$(i).value=today()});
-  $('raTur').innerHTML=TURLAR.map(t=>`<option>${t}</option>`).join('');
+  $('raTur').innerHTML=TURLAR.filter(t=>t!=='QARZ TOLOV'||can('qarz_ber')).map(t=>`<option>${t}</option>`).join('');
 }
 
 /* ---------- HISOB ---------- */
@@ -500,7 +540,7 @@ function render(){
   const ms=months(),cur=$('oySel').value||ym(today());
   $('oySel').innerHTML=ms.slice().reverse().map(k=>`<option value="${k}"${k===cur?' selected':''}>${oyNom(k)}</option>`).join('');
   const k=$('oySel').value;
-  renderXisobot(k,ms);renderTushum(k);renderRasxod(k);renderQarz();renderSherik();renderOylik(k);renderExson(k);
+  renderXisobot(k,ms);renderTushum(k);renderRasxod(k);renderQarz();renderSherik();renderOylik(k);renderProf();renderExson(k);
   const names=[...new Set([...D.xod.map(x=>x.ism),...D.yet.map(y=>y.kim),...D.rasxod.map(r=>r.kimga).filter(Boolean)])].sort();
   $('kimList').innerHTML=names.map(n=>`<option value="${esc(n)}">`).join('');
 }
@@ -586,26 +626,26 @@ function renderQarz(){
   const act=st.filter(x=>!x.done), done=st.filter(x=>x.done);
   $('tblQarz').innerHTML='<thead><tr><th>Kim</th><th class="n">Boshlang\'ich</th><th class="n">Olindi</th><th class="n">To\'landi</th><th class="n">Qoldiq qarz</th><th></th></tr></thead><tbody>'+
     (act.map(x=>{const {y,i}=x;
-      return `<tr><td><b>${esc(y.kim)}</b></td><td class="n">${dual(x,'b')}</td><td class="n">${dual(x,'o')}</td><td class="n">${dual(x,'t')}</td><td class="n">${dual(x,'q',1)}</td><td class="n" style="white-space:nowrap"><button class="ib" title="Boshlang'ich qarz" onclick="editBosh(${i})">✎</button><button class="ib" title="O'chirish" onclick="delSup(${i})">🗑</button></td></tr>`;
+      return `<tr><td><b>${esc(y.kim)}</b></td><td class="n">${dual(x,'b')}</td><td class="n">${dual(x,'o')}</td><td class="n">${dual(x,'t')}</td><td class="n">${dual(x,'q',1)}</td><td class="n" style="white-space:nowrap"><button class="ib" title="Tahrirlash" onclick="editBosh(${i})">✎</button><button class="ib" title="O'chirish" onclick="delSup(${i})">🗑</button></td></tr>`;
     }).join('')||'<tr><td colspan="6" class="empty">🎉 Hozir hech kimdan qarz yo\'q</td></tr>')+(()=>{const T={uzs:{b:0,o:0,t:0,q:0},usd:{b:0,o:0,t:0,q:0}};act.forEach(x=>['uzs','usd'].forEach(c=>['b','o','t','q'].forEach(k=>T[c][k]+=x[c][k])));
       const tt={...T,hasUzs:true,hasUsd:act.some(x=>x.hasUsd)};
       return `<tr class="tot"><td>JAMI</td><td class="n">${dual(tt,'b')}</td><td class="n">${dual(tt,'o')}</td><td class="n">${dual(tt,'t')}</td><td class="n">${dual(tt,'q')}</td><td></td></tr></tbody>`;})();
   const opts=D.yet.map(y=>`<option>${esc(y.kim)}</option>`).join('');{const a=$('qoKim').value,b=$('qtKim').value;$('qoKim').innerHTML=opts;$('qtKim').innerHTML=opts;if(a)$('qoKim').value=a;if(b)$('qtKim').value=b;}qtHint();
   const actK=new Set(act.map(x=>x.y.kim)), olA=D.qarzOl.filter(q=>actK.has(q.kim));
-  const olRow=q=>`<tr><td>${dmy(q.sana)}</td><td><b>${esc(q.kim)}</b></td><td class="muted">${esc(q.nima||'')}</td><td class="n">${q.valyuta==='usd'?`<b style="color:#0a7a4f">${fmtU(q.summa)}</b>`:fmt(q.summa)}</td><td class="n"><button class="ib" onclick="del('qarz_olingan',${q.id})">🗑</button></td></tr>`;
+  const olRow=q=>`<tr><td>${dmy(q.sana)}</td><td><b>${esc(q.kim)}</b></td><td class="muted">${esc(q.nima||'')}</td><td class="n">${q.valyuta==='usd'?`<b style="color:#0a7a4f">${fmtU(q.summa)}</b>`:fmt(q.summa)}</td><td class="n" style="white-space:nowrap"><button class="ib" onclick="editQo(${q.id})">✎</button><button class="ib" onclick="del('qarz_olingan',${q.id})">🗑</button></td></tr>`;
   $('tblQarzOl').innerHTML=olA.length?'<thead><tr><th>Sana</th><th>Kim</th><th>Nima</th><th class="n">Summa</th><th></th></tr></thead><tbody>'+olA.slice().reverse().map(olRow).join('')+'</tbody>':'<tr><td class="empty">Qarzi bor yetkazuvchidan olingan mol yo\'q</td></tr>';
   // Tarix
   const allPays=D.rasxod.filter(r=>r.turi==='QARZ TOLOV').slice().sort((a,b)=>a.sana<b.sana?1:-1);
   $('qHistBtn').innerHTML=`🕓 Tarix${allPays.length?` <span class="pill" style="background:#0a4fa3;color:#fff">${allPays.length}</span>`:''}`;
   $('qHistBtn').className='btn '+(qHist?'':'s');
   const box=$('qHistBox'); box.classList.toggle('hide',!qHist); if(!qHist) return;
-  box.innerHTML=`<h3>🕓 Tarix <button class="ib" style="margin-left:auto" title="Yopish" onclick="qHist=false;renderQarz()">✕</button></h3>
+  box.innerHTML=`<h3>🕓 Tarix <button class="ib w" style="margin-left:auto" title="Yopish" onclick="qHist=false;renderQarz()">✕</button></h3>
     <h4 style="margin:6px 0 8px">✅ Qarzdan qutilganlar (${done.length})</h4>
     <div class="tw"><table>${done.length?'<thead><tr><th>Kim</th><th class="n">Jami olindi</th><th class="n">Jami to\'landi</th><th>Qutilgan sana</th><th></th></tr></thead><tbody>'+
       done.sort((a,b)=>a.last<b.last?1:-1).map(x=>`<tr style="background:#ecfdf5"><td><b>${esc(x.y.kim)}</b> <span class="pill" style="background:#d1fae5;color:#047857">Qarz yo'q</span></td><td class="n">${x.hasUzs?fmt(x.uzs.b+x.uzs.o):''}${x.hasUsd?`<div style="color:#0a7a4f">${fmtU(x.usd.b+x.usd.o)}</div>`:''}</td><td class="n">${x.hasUzs?fmt(x.uzs.t):''}${x.hasUsd?`<div style="color:#0a7a4f">${fmtU(x.usd.t)}</div>`:''}</td><td>${x.last?dmy(x.last):'—'}</td><td class="n"><button class="ib" title="O'chirish" onclick="delSup(${x.i})">🗑</button></td></tr>`).join('')+'</tbody>':'<tr><td class="empty">Hali qarzdan to\'liq qutilgan yetkazuvchi yo\'q</td></tr>'}</table></div>
     <h4 style="margin:16px 0 8px">💸 Berilgan qarzlar (to'lovlar) — ${allPays.length} ta · jami ${fmt(allPays.filter(r=>r.summa_usd==null).reduce((a,r)=>a+ +r.summa,0))} so'm${allPays.some(r=>r.summa_usd!=null)?' + '+fmtU(allPays.filter(r=>r.summa_usd!=null).reduce((a,r)=>a+ +r.summa_usd,0)):''}</h4>
     <div class="tw"><table>${allPays.length?'<thead><tr><th>Sana</th><th>Kimga</th><th class="n">Summa</th><th>Izoh</th><th></th></tr></thead><tbody>'+
-      allPays.map(r=>`<tr><td>${dmy(r.sana)}</td><td><b>${esc(r.kimga||'')}</b>${done.some(x=>x.y.kim===r.kimga)?' <span class="pill" style="background:#d1fae5;color:#047857">✓</span>':''}</td><td class="n pos">${payAmt(r)}</td><td class="muted">${esc(r.izoh||'')}</td><td class="n"><button class="ib" onclick="del('rasxod',${r.id})">🗑</button></td></tr>`).join('')+'</tbody>':'<tr><td class="empty">Hali qarz to\'lanmagan</td></tr>'}</table></div>
+      allPays.map(r=>`<tr><td>${dmy(r.sana)}</td><td><b>${esc(r.kimga||'')}</b>${done.some(x=>x.y.kim===r.kimga)?' <span class="pill" style="background:#d1fae5;color:#047857">✓</span>':''}</td><td class="n pos">${payAmt(r)}</td><td class="muted">${esc(r.izoh||'')}</td><td class="n" style="white-space:nowrap"><button class="ib" onclick="goRasxod(${r.id})">✎</button><button class="ib" onclick="del('rasxod',${r.id})">🗑</button></td></tr>`).join('')+'</tbody>':'<tr><td class="empty">Hali qarz to\'lanmagan</td></tr>'}</table></div>
     ${done.length?`<h4 style="margin:16px 0 8px">📦 Qutilganlardan olingan mollar</h4><div class="tw"><table><thead><tr><th>Sana</th><th>Kim</th><th>Nima</th><th class="n">Summa</th><th></th></tr></thead><tbody>${D.qarzOl.filter(q=>done.some(x=>x.y.kim===q.kim)).slice().reverse().map(olRow).join('')}</tbody></table></div>`:''}`;
 }
 function renderOylik(k){
@@ -647,17 +687,17 @@ function renderSherik(){
         <div style="margin-top:6px;font-size:13px;color:var(--mut)">${c.act.length} ta haqdor</div>
         <div style="margin-top:4px;font-weight:700" class="${c.tot.uzs||c.tot.usd?'neg':''}">${two(c.tot)}</div></button>`;}).join('')}
       </div>
-      <form class="f" style="margin-top:12px" onsubmit="shAdd(event)"><div><label>Yangi sherik</label><input id="shNew" placeholder="ism" required></div><button class="btn s">➕ Qo'shish</button></form>`;
+      <form class="f own" style="margin-top:12px" onsubmit="shAdd(event)"><div><label>Yangi sherik</label><input id="shNew" placeholder="ism" required></div><button class="btn s">➕ Qo'shish</button></form>`;
     return;}
   const c=shCalc(shSel), q=(name)=>esc(JSON.stringify(name));
   const opts=c.act.map(x=>`<option>${esc(x.xaqdor)}</option>`).join('');
-  box.innerHTML=`<h3>👤 ${esc(shSel)} <button class="ib" style="margin-left:auto;width:auto;padding:0 12px" onclick="shHist=!shHist;renderSherik()">🕓 Tarix</button><button class="ib" title="Yopish" onclick="shSel=null;renderSherik()">✕</button></h3>
+  box.innerHTML=`<h3>👤 ${esc(shSel)} <button class="ib w" style="margin-left:auto;width:auto;padding:0 12px" onclick="shHist=!shHist;renderSherik()">🕓 Tarix</button>${isBoss()?`<button class="ib" title="Nomini o'zgartirish / o'chirish" onclick="editSherik(${q(shSel)})">✎</button>`:''}<button class="ib w" title="Yopish" onclick="shSel=null;renderSherik()">✕</button></h3>
     <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:12px">
       <div style="background:#fef2f2;border-radius:12px;padding:10px 12px"><div class="muted" style="font-size:12px;font-weight:600">QARZ QOLDIG'I</div><div style="font-weight:800;font-size:18px" class="neg">${two(c.tot)}</div></div>
       <div style="background:#eff6ff;border-radius:12px;padding:10px 12px"><div class="muted" style="font-size:12px;font-weight:600">SHAXSIY PUL</div><div style="font-weight:800;font-size:18px">${two(c.own)}</div></div></div>
     <div class="tw"><table><thead><tr><th>Haqdor</th><th class="n">Olingan</th><th class="n">Berilgan</th><th class="n">Qoldiq</th><th></th></tr></thead><tbody>
       ${c.act.map(x=>`<tr><td><b>${esc(x.xaqdor)}</b>${x.izoh.length?`<div class="muted" style="font-size:12px">${esc(x.izoh.join(', '))}</div>`:''}</td><td class="n">${two(x.o)}</td><td class="n">${two(x.t)}</td><td class="n neg"><b>${two(x.q)}</b></td>
-        <td class="n"><button class="ib" title="Qarz berish" onclick="$('sqtX').value=${q(x.xaqdor)};$('sqtSum').focus()">💸</button></td></tr>`).join('')||'<tr><td colspan="5" class="empty">Qarz yo\'q</td></tr>'}
+        <td class="n"><button class="ib w ${can('qarz_ber')?'':'noperm'}" title="Qarz berish" onclick="$('sqtX').value=${q(x.xaqdor)};$('sqtSum').focus()">💸</button></td></tr>`).join('')||'<tr><td colspan="5" class="empty">Qarz yo\'q</td></tr>'}
     </tbody></table></div>
     ${shHist?`<div style="margin-top:12px;border:2px solid #cfe0f5;border-radius:12px;padding:10px">
       <h4 style="margin:0 0 8px">✅ Qarzdan qutilganlar (${c.done.length})</h4>
@@ -665,17 +705,17 @@ function renderSherik(){
       <h4 style="margin:12px 0 8px">📜 Barcha yozuvlar</h4>
       <div class="tw"><table><thead><tr><th>Sana</th><th>Turi</th><th>Haqdor</th><th class="n">Summa</th><th>Izoh</th><th></th></tr></thead><tbody>
       ${c.R.slice().sort((a,b)=>a.sana<b.sana?1:-1).map(r=>`<tr><td>${dmy(r.sana)}</td><td>${r.turi==='qarz'?'<span class="pill" style="background:#fee2e2;color:#b91c1c">Qarz olindi</span>':r.turi==='tolov'?'<span class="pill" style="background:#d1fae5;color:#047857">Qarz berildi</span>':'<span class="pill" style="background:#dbeafe;color:#1d4ed8">Shaxsiy pul</span>'}</td><td>${esc(r.xaqdor||'')}</td>
-        <td class="n">${r.valyuta==='usd'?`<b style="color:#0a7a4f">${fmtU(r.summa)}</b>`:fmt(r.summa)}${r.rasxod_id?'<div class="muted" style="font-size:11px">rasxodda</div>':''}</td><td class="muted">${esc(r.izoh||'')}</td><td class="n"><button class="ib" onclick="shDel(${r.id})">🗑</button></td></tr>`).join('')||'<tr><td colspan="6" class="empty">Yozuv yo\'q</td></tr>'}
+        <td class="n">${r.valyuta==='usd'?`<b style="color:#0a7a4f">${fmtU(r.summa)}</b>`:fmt(r.summa)}${r.rasxod_id?'<div class="muted" style="font-size:11px">rasxodda</div>':''}</td><td class="muted">${esc(r.izoh||'')}</td><td class="n" style="white-space:nowrap"><button class="ib" onclick="editSq(${r.id})">✎</button><button class="ib" onclick="shDel(${r.id})">🗑</button></td></tr>`).join('')||'<tr><td colspan="6" class="empty">Yozuv yo\'q</td></tr>'}
       </tbody></table></div></div>`:''}
     <div class="grid g3f" style="margin-top:14px">
-      <form class="v" onsubmit="shSave(event,'qarz')" style="background:#fff7f7;border-radius:12px;padding:12px"><h4 style="margin:0">🔴 Qarz olindi</h4>
+      <form class="v ${can('qarz_ol')?'':'noperm'}" onsubmit="shSave(event,'qarz')" style="background:#fff7f7;border-radius:12px;padding:12px"><h4 style="margin:0">🔴 Qarz olindi</h4>
         <div><label>Kimdan (haqdor)</label><input id="sqoX" list="sqXList" required placeholder="masalan: FARGONA AKAM"></div>
         <div><label>Nima uchun</label><input id="sqoIz" placeholder="masalan: YANGI APARAT"></div>
         <div><label>Valyuta</label><select id="sqoV"><option value="usd">Dollar ($)</option><option value="uzs">So'm (ming so'mda)</option></select></div>
         <div><label>Summa</label><input id="sqoSum" type="number" step="any" inputmode="decimal" required></div>
         <div><label>Sana</label><input id="sqoSana" type="date" value="${today()}" required></div>
         <button class="btn r">Qarzga yozish</button></form>
-      <form class="v" onsubmit="shSave(event,'tolov')" style="background:#f3fbf7;border-radius:12px;padding:12px"><h4 style="margin:0">🟢 Qarz berildi</h4>
+      <form class="v ${can('qarz_ber')?'':'noperm'}" onsubmit="shSave(event,'tolov')" style="background:#f3fbf7;border-radius:12px;padding:12px"><h4 style="margin:0">🟢 Qarz berildi</h4>
         <div><label>Kimga</label><select id="sqtX" required>${opts||'<option value="">— qarz yo\'q —</option>'}</select></div>
         <div><label>Valyuta</label><select id="sqtV" onchange="$('sqtKW').classList.toggle('hide',this.value!=='usd'||!$('sqtR').checked)"><option value="usd">Dollar ($)</option><option value="uzs">So'm (ming so'mda)</option></select></div>
         <div><label>Summa</label><input id="sqtSum" type="number" step="any" inputmode="decimal" required></div>
@@ -684,7 +724,7 @@ function renderSherik(){
         <div id="sqtKW" class="hide"><label>Kurs (1$ = so'm)</label><input id="sqtKurs" type="number" step="any" inputmode="decimal"></div>
         <div><label>Izoh</label><input id="sqtIz"></div>
         <button class="btn g">Qarz berildi</button></form>
-      <form class="v" onsubmit="shSave(event,'shaxsiy')" style="background:#f3f7fd;border-radius:12px;padding:12px"><h4 style="margin:0">💼 Shaxsiy pul</h4>
+      <form class="v own" onsubmit="shSave(event,'shaxsiy')" style="background:#f3f7fd;border-radius:12px;padding:12px"><h4 style="margin:0">💼 Shaxsiy pul</h4>
         <div class="muted" style="font-size:12px">${esc(shSel)} o'z cho'ntagidan moykaga qo'ygan pul</div>
         <div><label>Valyuta</label><select id="sspV"><option value="usd">Dollar ($)</option><option value="uzs">So'm (ming so'mda)</option></select></div>
         <div><label>Summa</label><input id="sspSum" type="number" step="any" inputmode="decimal" required></div>
@@ -713,11 +753,71 @@ async function shDel(id){const r=(D.shq||[]).find(x=>x.id===id); if(!r) return;
   if(r.rasxod_id){const {error}=await sb.from('rasxod').delete().eq('id',r.rasxod_id); if(error) return err(error);}
   run(sb.from('sherik_qarz').delete().eq('id',id),"O'chirildi");}
 
+
+/* ---------- RAHBAR: har qanday yozuvni tahrirlash ---------- */
+function form2(title,fields){return new Promise(res=>{
+  $('edT').textContent=title;
+  $('edF').innerHTML=fields.map(f=>`<div><label>${esc(f.l)}</label>${f.t==='sel'?`<select data-k="${f.k}">${f.o.map(o=>`<option value="${esc(o[0])}" ${String(o[0])===String(f.v)?'selected':''}>${esc(o[1])}</option>`).join('')}</select>`:`<input data-k="${f.k}" ${f.t==='num'?'type="number" step="any" inputmode="decimal"':f.t==='date'?'type="date"':''} value="${esc(f.v??'')}">`}</div>`).join('');
+  openM('edModal');
+  $('edOk').onclick=()=>{const o={};$('edF').querySelectorAll('[data-k]').forEach(e=>o[e.dataset.k]=e.value);closeM('edModal');res(o)};
+  $('edNo').onclick=()=>{closeM('edModal');res(null)};
+})}
+const VAL=[['uzs',"So'm (ming so'mda)"],['usd','Dollar ($)']];
+async function editQo(id){const q=D.qarzOl.find(x=>x.id===id); if(!q) return; const u=q.valyuta==='usd';
+  const v=await form2("✎ Qarzga olingan mol",[{k:'sana',l:'Sana',t:'date',v:q.sana},{k:'kim',l:'Kimdan',t:'sel',o:D.yet.map(y=>[y.kim,y.kim]),v:q.kim},{k:'nima',l:'Nima',v:q.nima||''},{k:'val',l:'Valyuta',t:'sel',o:VAL,v:q.valyuta||'uzs'},{k:'sum',l:'Summa',t:'num',v:u?+q.summa:kv(q.summa)}]); if(!v) return;
+  const nu=v.val==='usd', sm=nu?Math.round((+v.sum||0)*100)/100:Math.round((+v.sum||0)*K); if(!(sm>0)) return toast("Summa noto'g'ri");
+  run(sb.from('qarz_olingan').update({sana:v.sana,kim:v.kim,nima:v.nima||null,valyuta:nu?'usd':'uzs',summa:sm}).eq('id',id),'Saqlandi')}
+async function editSq(id){const r=(D.shq||[]).find(x=>x.id===id); if(!r) return; const u=r.valyuta==='usd';
+  const f=[{k:'sana',l:'Sana',t:'date',v:r.sana}]; if(r.turi!=='shaxsiy') f.push({k:'xaqdor',l:'Haqdor',v:r.xaqdor||''});
+  f.push({k:'val',l:'Valyuta',t:'sel',o:VAL,v:r.valyuta},{k:'sum',l:'Summa',t:'num',v:u?+r.summa:kv(r.summa)},{k:'izoh',l:'Izoh',v:r.izoh||''});
+  if(r.rasxod_id&&u) f.push({k:'kurs',l:"Kurs (1$ = so'm)",t:'num',v:r.kurs||''});
+  const v=await form2('✎ '+r.sherik,f); if(!v) return;
+  const nu=v.val==='usd', sm=nu?Math.round((+v.sum||0)*100)/100:Math.round((+v.sum||0)*K); if(!(sm>0)) return toast("Summa noto'g'ri");
+  const row={sana:v.sana,valyuta:nu?'usd':'uzs',summa:sm,izoh:v.izoh||null}; if(r.turi!=='shaxsiy') row.xaqdor=up(v.xaqdor||'')||r.xaqdor;
+  if(r.rasxod_id){const k=nu?(+v.kurs||+r.kurs||0):null; if(nu&&!(k>0)) return toast('Kursni kiriting'); row.kurs=k;
+    const {error}=await sb.from('rasxod').update({sana:v.sana,summa:nu?Math.round(sm*k):sm,summa_usd:nu?sm:null,kurs:k,kimga:row.xaqdor||r.xaqdor}).eq('id',r.rasxod_id); if(error) return err(error);}
+  run(sb.from('sherik_qarz').update(row).eq('id',id),'Saqlandi')}
+async function editSherik(ism){
+  const v=await form2('✎ Sherik',[{k:'ism',l:'Ismi',v:ism},{k:'del',l:"O'chirish (barcha yozuvlari bilan)",t:'sel',o:[['0',"Yo'q"],['1',"Ha, o'chirilsin"]],v:'0'}]); if(!v) return;
+  if(v.del==='1'){ if(!await ask(`${ism} va uning barcha qarz yozuvlari o'chirilsinmi? Qaytarib bo'lmaydi.`)) return; shSel=null; return run(sb.from('sheriklar').delete().eq('ism',ism),"O'chirildi"); }
+  const n=up(v.ism); if(n&&n!==ism){ shSel=n; run(sb.from('sheriklar').update({ism:n}).eq('ism',ism),'Saqlandi'); }}
+function goRasxod(id){const r=D.rasxod.find(x=>x.id===id); if(!r) return; $('oySel').value=ym(r.sana); render(); document.querySelector('#tabs button[data-t="rasxod"]').click(); editRasxod(id);}
+
+/* ---------- PROFILLAR (rahbar) ---------- */
+const PERMS=[['tushum','💵 Kunlik tushum yozish'],['rasxod','🧾 Kunlik rasxod yozish'],['qarz_ol','🔴 Qarzga olish'],['qarz_ber','🟢 Qarz berish']];
+let PR=[];
+async function loadProf(){ if(!isBoss()) return; const {data,error}=await sb.rpc('profillar'); if(error) return err(error); PR=data||[]; renderProf(); }
+function renderProf(){ if(!isBoss()||!$('tblProf')) return;
+  const on=((D.soz||[]).find(z=>z.kalit==='ishchi_rejim')?.qiymat??'1')==='1';
+  $('prRejim').innerHTML=`<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap"><div style="flex:1;min-width:200px"><h3 style="margin:0 0 4px">👷 Ishchi rejimi: ${on?'<span class="pos">YOQILGAN</span>':'<span class="neg">O\'CHIRILGAN</span>'}</h3>
+    <div class="muted" style="font-size:13px">${on?"Ishchilar o'z login va PIN bilan kirib, ruxsat berilgan ishlarni yoza oladi.":"Hozir ishchilar dasturga kira olmaydi. Faqat rahbarlar ishlaydi."}</div></div>
+    <button class="btn ${on?'r':'g'}" onclick="setRejim(${on?0:1})">${on?"O'chirish":'Yoqish'}</button></div>`;
+  $('tblProf').innerHTML='<thead><tr><th>Ism / login</th><th>Rol</th>'+PERMS.map(p=>`<th style="font-size:11px">${p[1].split(' ').slice(1).join(' ')}</th>`).join('')+'<th>Faol</th><th></th></tr></thead><tbody>'+
+    PR.map(x=>{const me=x.id===D.uid, b=x.rol==='rahbar';return `<tr style="${x.faol?'':'opacity:.5'}"><td><b>${esc(x.ism||x.login)}</b>${me?' <span class="pill" style="background:#dbeafe;color:#1d4ed8">siz</span>':''}<div class="muted" style="font-size:12px">${esc(x.login)}${x.kirgan?' · '+dmy(String(x.kirgan).slice(0,10)):''}</div></td>
+      <td><select ${me?'disabled':''} onchange="prSet('${x.id}',{rol:this.value})" style="width:auto;padding:6px 8px"><option value="ishchi" ${b?'':'selected'}>👷 Ishchi</option><option value="rahbar" ${b?'selected':''}>👑 Rahbar</option></select></td>
+      ${PERMS.map(p=>`<td style="text-align:center">${b?'<span class="muted">✓</span>':`<input type="checkbox" style="width:20px;height:20px" ${x.ruxsat&&x.ruxsat[p[0]]?'checked':''} onchange="prSet('${x.id}',{ruxsat:{${p[0]}:this.checked}})">`}</td>`).join('')}
+      <td style="text-align:center"><input type="checkbox" style="width:20px;height:20px" ${x.faol?'checked':''} ${me?'disabled':''} onchange="prSet('${x.id}',{faol:this.checked})"></td>
+      <td class="n" style="white-space:nowrap"><button class="ib" title="Ismini o'zgartirish" onclick="prIsm('${x.id}')">✎</button><button class="ib" title="PIN almashtirish" onclick="prPin('${x.id}')">🔑</button>${me?'':`<button class="ib" title="O'chirish" onclick="prDel('${x.id}')">🗑</button>`}</td></tr>`;}).join('')+'</tbody>';
+  if(!$('prPerms').children.length) $('prPerms').innerHTML=PERMS.map(p=>`<label style="display:flex;gap:6px;align-items:center;color:var(--tx);font-size:14px;margin:0"><input type="checkbox" data-pp="${p[0]}" checked style="width:18px;height:18px"> ${p[1]}</label>`).join('');
+}
+async function setRejim(v){ await run(sb.from('sozlamalar').upsert({kalit:'ishchi_rejim',qiymat:String(v)}),v?'Ishchi rejimi yoqildi':"Ishchi rejimi o'chirildi"); loadProf(); }
+async function prSet(id,p){ const {error}=await sb.rpc('profil_saqla',{p_id:id,p}); if(error){err(error);return loadProf();} toast('✅ Saqlandi'); loadProf(); }
+async function prIsm(id){const x=PR.find(z=>z.id===id); const v=await form2('✎ Ism',[{k:'ism',l:'Ismi',v:x.ism||''}]); if(v) prSet(id,{ism:v.ism});}
+async function fnIshchi(body){ const {data,error}=await sb.functions.invoke('ishchi',{body}); if(error){ let m=error.message; try{m=(await error.context.json()).error||m}catch(e){} toast('❌ '+m); return null;} if(data&&data.error){toast('❌ '+data.error);return null;} return data; }
+async function prPin(id){const x=PR.find(z=>z.id===id); const v=await form2('🔑 '+(x.ism||x.login)+' — yangi PIN',[{k:'pin',l:'Yangi PIN (kamida 4)',v:''}]); if(!v) return; if(String(v.pin).length<4) return toast('PIN kamida 4 belgi');
+  if(await fnIshchi({action:'pin',id,pin:String(v.pin)})) toast('✅ PIN almashtirildi');}
+async function prDel(id){const x=PR.find(z=>z.id===id); if(!await ask(`${x.ism||x.login} profili o'chirilsinmi? U endi kira olmaydi.`)) return; if(await fnIshchi({action:'delete',id})){toast("✅ O'chirildi");loadProf();}}
+async function prNew(e){e.preventDefault(); const ruxsat={}; document.querySelectorAll('[data-pp]').forEach(c=>ruxsat[c.dataset.pp]=c.checked);
+  const r=await fnIshchi({action:'create',ism:$('prIsm').value.trim(),login:$('prLogin').value.trim(),pin:$('prPin').value,rol:$('prRol').value,ruxsat});
+  if(r){toast(`✅ Profil ochildi. Login: ${$('prLogin').value.trim()}`);$('prIsm').value='';$('prLogin').value='';$('prPin').value='';loadProf();}}
+
 /* ---------- AMALLAR ---------- */
 async function run(p,msg){const {error}=await p;if(error){err(error);return false}await loadAll();render();if(msg)toast('✅ '+msg);return true}
 const up=s=>s.trim().toUpperCase();
 async function saveTushum(e){e.preventDefault();
-  if(await run(sb.from('tushum').upsert({sana:$('tuSana').value,summa:inp('tuSum'),izoh:$('tuIzoh').value||null},{onConflict:'sana'}),'Tushum saqlandi')){$('tuSum').value='';$('tuIzoh').value=''}}
+  const row={sana:$('tuSana').value,summa:inp('tuSum'),izoh:$('tuIzoh').value||null};
+  if(!isBoss()&&D.tushum.some(r=>r.sana===row.sana)) return toast("Bu sanaga tushum yozilgan — o'zgartirishni rahbar qiladi");
+  if(await run(isBoss()?sb.from('tushum').upsert(row,{onConflict:'sana'}):sb.from('tushum').insert(row),'Tushum saqlandi')){$('tuSum').value='';$('tuIzoh').value=''}}
 function editTushum(id){const r=D.tushum.find(x=>x.id===id);$('tuSana').value=r.sana;$('tuSum').value=kv(r.summa);$('tuIzoh').value=r.izoh||'';scrollTo(0,0);$('tuSum').focus()}
 async function saveRasxod(e){e.preventDefault();
   const id=$('raId').value,row={sana:$('raSana').value,summa:inp('raSum'),turi:$('raTur').value,kimga:up($('raKim').value)||null,izoh:$('raIzoh').value.trim()||null,summa_usd:null,kurs:null};
@@ -735,7 +835,7 @@ function clearRasxod(){$('raId').value='';$('raSum').value='';$('raKim').value='
 /* Rasxod yozilayotganda: qarzi bor insonni tanib, "qarz to'lovimi?" deb yordam */
 let raDebt=null, raUsd=false, raNo=new Set(), raKurs0=0;
 function debtTxt(st){const p=[];if(st.uzs.q>0)p.push(fmt(st.uzs.q)+" so'm");if(st.usd.q>0)p.push(fmtU(st.usd.q));return p.join(' + ')||"yo'q";}
-function supMatch(){
+function supMatch(){ if(!can('qarz_ber')) return null;
   const txt=' '+(($('raKim').value||'')+' '+($('raIzoh').value||'')).toUpperCase().replace(/[^A-ZА-ЯЁЎҚҒҲ'0-9]+/g,' ')+' ';
   const owing=D.yet.filter(y=>{const st=qStat(y);return st.uzs.q>0||st.usd.q>0});
   const hit=y=>{const k=y.kim.toUpperCase(); if(txt.includes(' '+k+' ')) return 2; const w=k.split(/\s+/)[0]; return w.length>=3&&txt.includes(' '+w+' ')?1:0;};
@@ -749,7 +849,7 @@ function raDebtUI(){
     const rem=raUsd?`${fmtU(Math.max(0,st.usd.q-v))}`:`${fmt(Math.max(0,st.uzs.q-v*K))} so'm`;
     box.className='';box.style.cssText='grid-column:1/-1;background:#ecfdf5;border:1.5px solid #10b981;border-radius:12px;padding:10px 12px;font-size:14px';
     box.innerHTML=`<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><b>💸 Qarz to'lovi: ${esc(raDebt)}</b><span class="muted">qarz: ${debtTxt(st)}</span>
-      <button type="button" class="ib" style="margin-left:auto;width:auto;padding:0 10px" onclick="raNo.add(raDebt);raDebt=null;raUsd=false;$('raSum').dataset.usd='';$('raSum')._u&&$('raSum')._u();if($('raTur').value==='QARZ TOLOV')$('raTur').value='BOSHQA';raDebtUI()">✕ Qarz emas</button></div>
+      <button type="button" class="ib w" style="margin-left:auto;width:auto;padding:0 10px" onclick="raNo.add(raDebt);raDebt=null;raUsd=false;$('raSum').dataset.usd='';$('raSum')._u&&$('raSum')._u();if($('raTur').value==='QARZ TOLOV')$('raTur').value='BOSHQA';raDebtUI()">✕ Qarz emas</button></div>
       ${hasU?`<div style="display:flex;gap:6px;margin-top:8px;align-items:center;flex-wrap:wrap"><button type="button" class="btn ${raUsd?'s':''}" style="padding:6px 12px;font-size:13px" onclick="raUsd=false;$('raSum').dataset.usd='';$('raSum')._u&&$('raSum')._u();raDebtUI()">So'mda</button><button type="button" class="btn ${raUsd?'':'s'}" style="padding:6px 12px;font-size:13px" onclick="raUsd=true;$('raSum').dataset.usd='1';$('raSum')._u&&$('raSum')._u();raDebtUI()">Dollarda ($)</button>
         ${raUsd?`<label style="margin:0 0 0 6px">Kurs 1$ =</label><input id="raKurs" type="number" step="any" inputmode="decimal" value="${k||''}" style="width:110px;height:36px;padding:6px 10px" oninput="raKurs0=+this.value">`:''}</div>`:''}
       <div class="muted" style="margin-top:6px;font-size:13px">${raUsd?"Summa maydoniga dollarda yozing. ":''}Saqlangach qarzdan ayiriladi${v?` — qoladi: <b>${rem}</b>`:''}. Qarz tugasa, ${esc(raDebt)} Qarzlar tarixiga o'tadi.</div>`;
@@ -792,9 +892,10 @@ async function delSup(i){const y=D.yet[i]; if(!y) return;
   run(sb.from('yetkazuvchilar').delete().eq('kim',y.kim),"O'chirildi");
 }
 async function editBosh(i){const y=D.yet[i];
-  const v=await ask(y.kim+" — boshlang'ich qarz (ming so'm):",kv(y.boshlangich_qarz));if(v===null)return;
-  const w=await ask(y.kim+" — boshlang'ich qarz ($ dollarda):",+y.boshlangich_usd||0);if(w===null)return;
-  run(sb.from('yetkazuvchilar').update({boshlangich_qarz:Math.round((+v||0)*K),boshlangich_usd:+w||0}).eq('kim',y.kim),'Saqlandi')}
+  const v=await form2('✎ '+y.kim,[{k:'kim',l:'Ismi',v:y.kim},{k:'b',l:"Boshlang'ich qarz (ming so'm)",t:'num',v:kv(y.boshlangich_qarz)},{k:'u',l:"Boshlang'ich qarz ($)",t:'num',v:+y.boshlangich_usd||0}]); if(!v) return;
+  const nk=up(v.kim)||y.kim;
+  if(nk!==y.kim){const {error}=await sb.from('rasxod').update({kimga:nk}).eq('turi','QARZ TOLOV').eq('kimga',y.kim); if(error) return err(error);}
+  run(sb.from('yetkazuvchilar').update({kim:nk,boshlangich_qarz:Math.round((+v.b||0)*K),boshlangich_usd:+v.u||0}).eq('kim',y.kim),'Saqlandi')}
 async function payOylik(e){e.preventDefault();
   if(await run(sb.from('rasxod').insert({sana:$('opSana').value,summa:inp('opSum'),turi:'OYLIK',kimga:$('opIsm').value}),'Oylik yozildi'))$('opSum').value=''}
 async function addXodim(e){e.preventDefault();
@@ -859,6 +960,7 @@ Object.defineProperty(HTMLInputElement.prototype,'value',{get(){return _setv.get
 
 /* ---------- TABLAR ---------- */
 document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>{
+  if(b.dataset.t==='ishchi') loadProf();
   document.querySelectorAll('#tabs button').forEach(x=>x.classList.toggle('on',x===b));
   document.querySelectorAll('main>section').forEach(s=>s.classList.toggle('hide',s.id!=='t-'+b.dataset.t));
   scrollTo(0,0);
