@@ -107,7 +107,7 @@ create table if not exists sheriklar (ism text primary key, tartib int not null 
 create table if not exists sherik_qarz (
   id bigserial primary key,
   sherik text not null references sheriklar(ism) on update cascade on delete cascade,
-  turi text not null default 'qarz' check (turi in ('qarz','tolov','shaxsiy')),
+  turi text not null default 'qarz' check (turi in ('qarz','tolov','shaxsiy','shaxsiy_qaytar')),
   xaqdor text, sana date not null default current_date,
   summa numeric not null check (summa > 0),
   valyuta text not null default 'usd' check (valyuta in ('uzs','usd')),
