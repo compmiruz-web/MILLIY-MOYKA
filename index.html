@@ -134,6 +134,7 @@ form.v{display:grid;gap:10px}
 label{font-size:12px;color:var(--mut);font-weight:600;display:block;margin-bottom:5px}
 input,select{width:100%;padding:11px 12px;border:1.5px solid #dbe3ee;border-radius:12px;font-size:15px;background:#fbfdff;color:var(--tx);outline:none;transition:.15s}
 form.f>*{min-width:0}
+form.f{row-gap:24px}form.f>div{position:relative}form.f .kprev{position:absolute;left:0;top:100%;margin-top:3px;white-space:nowrap}
 form.f input,form.f select,form.f .btn{height:46px}
 form.f label{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 input[type=date],input[type=month],input[type=time]{-webkit-appearance:none;appearance:none;display:block;min-width:0;max-width:100%;height:46px;line-height:20px;text-align:left}
@@ -258,6 +259,7 @@ input:focus,select:focus{border-color:var(--pri2);background:#fff;box-shadow:0 0
         <div><label>Turi</label><select id="raTur"></select></div>
         <div><label>Kimga</label><input id="raKim" list="kimList" autocomplete="off" placeholder="ism"></div>
         <div style="grid-column:1/-1"><label>Nima uchun / izoh</label><input id="raIzoh"></div>
+        <div id="raDebt" class="hide" style="grid-column:1/-1"></div>
         <button class="btn" id="raBtn">➕ Qo'shish</button>
         <button type="button" class="btn s hide" id="raCancel" onclick="clearRasxod()">Bekor</button>
       </form>
@@ -365,7 +367,7 @@ input:focus,select:focus{border-color:var(--pri2);background:#fff;box-shadow:0 0
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script>
 /* ======== VERSIYA (har yangilanishda version.json bilan birga oshiriladi) ======== */
-const APP_V='2026.11.12-10';
+const APP_V='2026.11.12-11';
 
 const TURLAR=['OYLIK','XIMIYA','REMONT / EHTIYOT QISM','QARZ TOLOV','ARENDA','APARAT TOLOV','SVET','OBED','BOSHQA','BOLINMAGAN'];
 const TCOL={'OYLIK':'#dbeafe','XIMIYA':'#dcfce7','REMONT / EHTIYOT QISM':'#ffedd5','QARZ TOLOV':'#fee2e2','ARENDA':'#ede9fe','APARAT TOLOV':'#f3e8ff','SVET':'#fef9c3','OBED':'#f1f5f9','BOSHQA':'#e2e8f0','BOLINMAGAN':'#e5e7eb'};
@@ -551,7 +553,7 @@ function renderRasxod(k){
     if(r.sana!==last){last=r.sana;const dt=rows.filter(x=>x.sana===r.sana).reduce((a,x)=>a+ +x.summa,0);
       h+=`<tr class="day"><td>📅 ${dmy(r.sana)}</td><td class="n">${fmt(dt)}</td><td colspan="4"></td></tr>`}
     tot+= +r.summa;
-    h+=`<tr><td></td><td class="n">${fmt(r.summa)}</td><td><span class="pill" style="background:${TCOL[r.turi]||'#eee'}">${esc(r.turi)}</span></td><td>${esc(r.kimga||'')}</td><td class="muted">${esc(r.izoh||'')}</td><td class="n"><button class="ib" onclick="editRasxod(${r.id})">✎</button><button class="ib" onclick="del('rasxod',${r.id})">🗑</button></td></tr>`;
+    h+=`<tr><td></td><td class="n">${fmt(r.summa)}${r.summa_usd!=null&&r.summa_usd!==''?`<div style="color:#0a7a4f;font-size:12px">${fmtU(r.summa_usd)}</div>`:''}</td><td><span class="pill" style="background:${TCOL[r.turi]||'#eee'}">${esc(r.turi)}</span></td><td>${esc(r.kimga||'')}</td><td class="muted">${esc(r.izoh||'')}</td><td class="n"><button class="ib" onclick="editRasxod(${r.id})">✎</button><button class="ib" onclick="del('rasxod',${r.id})">🗑</button></td></tr>`;
   });
   $('tblRasxod').innerHTML=h+`<tr class="tot"><td>JAMI</td><td class="n">${fmt(tot)}</td><td colspan="4"></td></tr></tbody>`;
 }
@@ -624,11 +626,54 @@ async function saveTushum(e){e.preventDefault();
   if(await run(sb.from('tushum').upsert({sana:$('tuSana').value,summa:inp('tuSum'),izoh:$('tuIzoh').value||null},{onConflict:'sana'}),'Tushum saqlandi')){$('tuSum').value='';$('tuIzoh').value=''}}
 function editTushum(id){const r=D.tushum.find(x=>x.id===id);$('tuSana').value=r.sana;$('tuSum').value=kv(r.summa);$('tuIzoh').value=r.izoh||'';scrollTo(0,0);$('tuSum').focus()}
 async function saveRasxod(e){e.preventDefault();
-  const id=$('raId').value,row={sana:$('raSana').value,summa:inp('raSum'),turi:$('raTur').value,kimga:up($('raKim').value)||null,izoh:$('raIzoh').value.trim()||null};
+  const id=$('raId').value,row={sana:$('raSana').value,summa:inp('raSum'),turi:$('raTur').value,kimga:up($('raKim').value)||null,izoh:$('raIzoh').value.trim()||null,summa_usd:null,kurs:null};
+  if(raDebt){row.turi='QARZ TOLOV';row.kimga=raDebt;
+    if(raUsd){const d=Math.round((+$('raSum').value||0)*100)/100,k=+($('raKurs')?.value)||0; if(!(d>0)||!(k>0)) return toast('Dollar summasi va kursni kiriting');
+      try{localStorage.setItem('mm_kurs',String(k))}catch(e){}
+      row.summa=Math.round(d*k);row.summa_usd=d;row.kurs=k;const tag=`${fmtU(d)} × ${fmt(k)}`;row.izoh=row.izoh&&row.izoh.includes('×')?row.izoh:[row.izoh,tag].filter(Boolean).join(' · ');}}
   const p=id?sb.from('rasxod').update(row).eq('id',id):sb.from('rasxod').insert(row);
   if(await run(p,id?'Yangilandi':"Rasxod qo'shildi"))clearRasxod();}
-function editRasxod(id){const r=D.rasxod.find(x=>x.id===id);$('raId').value=id;$('raSana').value=r.sana;$('raSum').value=kv(r.summa);$('raTur').value=r.turi;$('raKim').value=r.kimga||'';$('raIzoh').value=r.izoh||'';$('raBtn').textContent='💾 Yangilash';$('raCancel').classList.remove('hide');scrollTo(0,0)}
-function clearRasxod(){$('raId').value='';$('raSum').value='';$('raKim').value='';$('raIzoh').value='';$('raBtn').textContent="➕ Qo'shish";$('raCancel').classList.add('hide')}
+function editRasxod(id){const r=D.rasxod.find(x=>x.id===id);$('raId').value=id;$('raSana').value=r.sana;$('raTur').value=r.turi;$('raKim').value=r.kimga||'';$('raIzoh').value=r.izoh||'';$('raBtn').textContent='💾 Yangilash';$('raCancel').classList.remove('hide');
+  raNo=new Set(); raDebt=(r.turi==='QARZ TOLOV'&&D.yet.some(y=>y.kim===r.kimga))?r.kimga:null; raUsd=!!(raDebt&&r.summa_usd!=null&&r.summa_usd!=='');
+  $('raSum').dataset.usd=raUsd?'1':''; $('raSum').value=raUsd?+r.summa_usd:kv(r.summa); raKurs0=raUsd?+r.kurs:0; raDebtUI(); scrollTo(0,0)}
+function clearRasxod(){$('raId').value='';$('raSum').value='';$('raKim').value='';$('raIzoh').value='';$('raBtn').textContent="➕ Qo'shish";$('raCancel').classList.add('hide');
+  raDebt=null;raUsd=false;raNo=new Set();raKurs0=0;$('raSum').dataset.usd='';if($('raSum')._u)$('raSum')._u();if($('raTur').value==='QARZ TOLOV')$('raTur').value=TURLAR[0];raDebtUI()}
+/* Rasxod yozilayotganda: qarzi bor insonni tanib, "qarz to'lovimi?" deb yordam */
+let raDebt=null, raUsd=false, raNo=new Set(), raKurs0=0;
+function debtTxt(st){const p=[];if(st.uzs.q>0)p.push(fmt(st.uzs.q)+" so'm");if(st.usd.q>0)p.push(fmtU(st.usd.q));return p.join(' + ')||"yo'q";}
+function supMatch(){
+  const txt=' '+(($('raKim').value||'')+' '+($('raIzoh').value||'')).toUpperCase().replace(/[^A-ZА-ЯЁЎҚҒҲ'0-9]+/g,' ')+' ';
+  const owing=D.yet.filter(y=>{const st=qStat(y);return st.uzs.q>0||st.usd.q>0});
+  const hit=y=>{const k=y.kim.toUpperCase(); if(txt.includes(' '+k+' ')) return 2; const w=k.split(/\s+/)[0]; return w.length>=3&&txt.includes(' '+w+' ')?1:0;};
+  return owing.filter(y=>!raNo.has(y.kim)).map(y=>[y,hit(y)]).filter(x=>x[1]).sort((a,b)=>b[1]-a[1]||b[0].kim.length-a[0].kim.length).map(x=>x[0])[0]||null;
+}
+function raDebtUI(){
+  const box=$('raDebt'); if(!box) return;
+  if(raDebt){const y=D.yet.find(x=>x.kim===raDebt); if(!y){raDebt=null;return raDebtUI();}
+    const st=qStat(y), hasU=st.usd.q>0||raUsd, v=+$('raSum').value||0;
+    let k=raKurs0; if(raUsd&&!k){const l=D.rasxod.filter(r=>r.kurs).sort((a,b)=>a.sana<b.sana?1:-1)[0]; k=l?+l.kurs:0; try{k=k||+localStorage.getItem('mm_kurs')||0}catch(e){}}
+    const rem=raUsd?`${fmtU(Math.max(0,st.usd.q-v))}`:`${fmt(Math.max(0,st.uzs.q-v*K))} so'm`;
+    box.className='';box.style.cssText='grid-column:1/-1;background:#ecfdf5;border:1.5px solid #10b981;border-radius:12px;padding:10px 12px;font-size:14px';
+    box.innerHTML=`<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><b>💸 Qarz to'lovi: ${esc(raDebt)}</b><span class="muted">qarz: ${debtTxt(st)}</span>
+      <button type="button" class="ib" style="margin-left:auto;width:auto;padding:0 10px" onclick="raNo.add(raDebt);raDebt=null;raUsd=false;$('raSum').dataset.usd='';$('raSum')._u&&$('raSum')._u();if($('raTur').value==='QARZ TOLOV')$('raTur').value='BOSHQA';raDebtUI()">✕ Qarz emas</button></div>
+      ${hasU?`<div style="display:flex;gap:6px;margin-top:8px;align-items:center;flex-wrap:wrap"><button type="button" class="btn ${raUsd?'s':''}" style="padding:6px 12px;font-size:13px" onclick="raUsd=false;$('raSum').dataset.usd='';$('raSum')._u&&$('raSum')._u();raDebtUI()">So'mda</button><button type="button" class="btn ${raUsd?'':'s'}" style="padding:6px 12px;font-size:13px" onclick="raUsd=true;$('raSum').dataset.usd='1';$('raSum')._u&&$('raSum')._u();raDebtUI()">Dollarda ($)</button>
+        ${raUsd?`<label style="margin:0 0 0 6px">Kurs 1$ =</label><input id="raKurs" type="number" step="any" inputmode="decimal" value="${k||''}" style="width:110px;height:36px;padding:6px 10px" oninput="raKurs0=+this.value">`:''}</div>`:''}
+      <div class="muted" style="margin-top:6px;font-size:13px">${raUsd?"Summa maydoniga dollarda yozing. ":''}Saqlangach qarzdan ayiriladi${v?` — qoladi: <b>${rem}</b>`:''}. Qarz tugasa, ${esc(raDebt)} Qarzlar tarixiga o'tadi.</div>`;
+    return;}
+  const m=supMatch();
+  if(m){const st=qStat(m);
+    box.className='';box.style.cssText='grid-column:1/-1;background:#fffbeb;border:1.5px solid #f59e0b;border-radius:12px;padding:10px 12px;font-size:14px';
+    box.innerHTML=`💡 <b>${esc(m.kim)}</b> ga qarzingiz bor: <b>${debtTxt(st)}</b>. Bu qarz to'lovimi?
+      <div style="display:flex;gap:8px;margin-top:8px"><button type="button" class="btn g" style="padding:8px 14px;font-size:14px" onclick="raDebt=${JSON.stringify(m.kim).replace(/"/g,'&quot;')};raUsd=qStat(D.yet.find(x=>x.kim===raDebt)).uzs.q<=0;$('raSum').dataset.usd=raUsd?'1':'';$('raSum')._u&&$('raSum')._u();$('raTur').value='QARZ TOLOV';$('raKim').value=raDebt;raDebtUI()">Ha, qarzdan ayir</button><button type="button" class="btn s" style="padding:8px 14px;font-size:14px" onclick="raNo.add(${JSON.stringify(m.kim).replace(/"/g,'&quot;')});raDebtUI()">Yo'q</button></div>`;
+    return;}
+  if($('raTur').value==='QARZ TOLOV'){const owing=D.yet.filter(y=>{const st=qStat(y);return st.uzs.q>0||st.usd.q>0});
+    box.className='';box.style.cssText='grid-column:1/-1;background:#eff6ff;border:1.5px solid #60a5fa;border-radius:12px;padding:10px 12px;font-size:14px';
+    box.innerHTML=owing.length?`Kimning qarzi to'lanyapti? <select style="margin-top:6px" onchange="if(this.value){raDebt=this.value;raUsd=qStat(D.yet.find(x=>x.kim===raDebt)).uzs.q<=0;$('raSum').dataset.usd=raUsd?'1':'';$('raSum')._u&&$('raSum')._u();$('raKim').value=raDebt;raDebtUI()}"><option value="">— tanlang —</option>${owing.map(y=>`<option value="${esc(y.kim)}">${esc(y.kim)} — ${debtTxt(qStat(y))}</option>`).join('')}</select>`:"Hozir hech kimga qarz yo'q.";
+    return;}
+  box.className='hide';box.innerHTML='';
+}
+['raKim','raIzoh','raSum'].forEach(id=>$(id)&&$(id).addEventListener('input',()=>{if(id!=='raSum'||raDebt)raDebtUI()}));
+$('raTur')&&$('raTur').addEventListener('change',()=>{if($('raTur').value!=='QARZ TOLOV'&&raDebt){raNo.add(raDebt);raDebt=null;raUsd=false;$('raSum').dataset.usd='';}raDebtUI()});
 async function del(t,id){if(await ask("O'chirilsinmi?"))run(sb.from(t).delete().eq('id',id),"O'chirildi")}
 async function addQarz(e){e.preventDefault();
   const u=$('qoVal').value==='usd', sm=u?Math.round((+$('qoSum').value||0)*100)/100:inp('qoSum');
