@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#0b5cab">
+<title>SAMMOYKA XISOB-KITOB</title>
+<style>
+:root{--bg:#f2f5f9;--card:#fff;--tx:#1b2430;--mut:#6b7686;--pri:#0b5cab;--ok:#1a8f4c;--bad:#c62f2f;--warn:#b7791f;--line:#e3e8ef;--ex:#0f7a5a}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--tx);font-size:15px}
+header{background:var(--pri);color:#fff;padding:12px 14px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:5}
+header h1{font-size:17px;margin:0;flex:1}
+header select,header button{background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.35);border-radius:8px;padding:6px 8px;font-size:14px}
+header select option{color:#000}
+nav{display:flex;overflow-x:auto;background:#fff;border-bottom:1px solid var(--line);position:sticky;top:52px;z-index:4}
+nav button{flex:1;min-width:90px;border:0;background:none;padding:12px 8px;font-weight:600;color:var(--mut);border-bottom:3px solid transparent;font-size:14px}
+nav button.on{color:var(--pri);border-color:var(--pri)}
+main{max-width:1100px;margin:0 auto;padding:14px}
+.grid{display:grid;gap:12px}
+.g3{grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}
+.layout{display:grid;gap:14px;grid-template-columns:1fr}
+@media(min-width:900px){.layout{grid-template-columns:1fr 300px}}
+.card{background:var(--card);border-radius:12px;padding:14px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.card h3{margin:0 0 10px;font-size:15px}
+.stat .l{color:var(--mut);font-size:13px}.stat .v{font-size:24px;font-weight:700;margin-top:4px}
+.pos{color:var(--ok)}.neg{color:var(--bad)}
+.exson{border:2px solid var(--ex);background:#f1fbf7}
+.exson h3{color:var(--ex)}
+.row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed var(--line)}
+.row:last-child{border:0}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{padding:8px 6px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{color:var(--mut);font-weight:600;font-size:12px;text-transform:uppercase}
+td.n,th.n{text-align:right;white-space:nowrap}
+tr.tot td{font-weight:700;border-top:2px solid var(--tx)}
+tr.day td{background:#f6f8fb;font-weight:600}
+.tw{overflow-x:auto}
+form.f{display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));align-items:end}
+label{font-size:12px;color:var(--mut);display:block;margin-bottom:3px}
+input,select,textarea{width:100%;padding:9px 10px;border:1px solid #cdd5df;border-radius:8px;font-size:15px;background:#fff;color:var(--tx)}
+button.b{background:var(--pri);color:#fff;border:0;border-radius:8px;padding:10px 14px;font-weight:600;font-size:15px;cursor:pointer}
+button.b.g{background:var(--ok)}button.b.r{background:var(--bad)}button.b.s{background:#e9eef5;color:var(--tx)}
+button.x{border:0;background:none;cursor:pointer;font-size:16px;padding:2px 6px}
+.pill{display:inline-block;padding:2px 8px;border-radius:20px;font-size:12px;background:#e9eef5;white-space:nowrap}
+.muted{color:var(--mut);font-size:13px}
+.hide{display:none!important}
+#auth{max-width:380px;margin:60px auto}
+#toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#222;color:#fff;padding:10px 16px;border-radius:8px;opacity:0;transition:.3s;z-index:99}
+#toast.on{opacity:1}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;z-index:50;padding:14px}
+.modal .card{width:100%;max-width:440px}
+</style>
+</head>
+<body>
+
+<!-- SOZLASH / KIRISH -->
+<div id="auth" class="card hide">
+  <h2 style="margin-top:0">SAMMOYKA XISOB-KITOB</h2>
+  <div id="cfgBox">
+    <p class="muted">Birinchi marta: Supabase loyihangiz manzili va kalitini kiriting (Project Settings → API).</p>
+    <label>Supabase URL</label><input id="cfgUrl" placeholder="https://xxxx.supabase.co">
+    <label style="margin-top:8px">anon public key</label><input id="cfgKey" placeholder="eyJhbGciOi...">
+    <button class="b" style="margin-top:12px;width:100%" onclick="saveCfg()">Saqlash</button>
+  </div>
+  <div id="loginBox" class="hide">
+    <label>Email</label><input id="lgEmail" type="email" autocomplete="username">
+    <label style="margin-top:8px">Parol</label><input id="lgPass" type="password" autocomplete="current-password">
+    <button class="b" style="margin-top:12px;width:100%" onclick="login()">Kirish</button>
+    <p class="muted" style="margin-top:12px"><a href="#" onclick="resetCfg();return false">Supabase sozlamasini o'zgartirish</a></p>
+  </div>
+</div>
+
+<!-- ASOSIY -->
+<div id="app" class="hide">
+<header>
+  <h1>🚗 SAMMOYKA</h1>
+  <select id="oySel" onchange="render()"></select>
+  <button onclick="logout()" title="Chiqish">⎋</button>
+</header>
+<nav id="tabs">
+  <button data-t="xisobot" class="on">Xisobot</button>
+  <button data-t="tushum">Tushum</button>
+  <button data-t="rasxod">Rasxod</button>
+  <button data-t="qarz">Qarzlar</button>
+  <button data-t="oylik">Oylik</button>
+</nav>
+<main>
+  <p class="muted" style="margin:0 0 10px">Barcha summalar <b>ming so'mda</b></p>
+
+  <!-- XISOBOT -->
+  <section id="t-xisobot">
+    <div class="layout">
+      <div class="grid">
+        <div class="grid g3">
+          <div class="card stat"><div class="l">Oy tushumi</div><div class="v" id="sTush">0</div></div>
+          <div class="card stat"><div class="l">Oy rasxodi</div><div class="v" id="sRas">0</div></div>
+          <div class="card stat"><div class="l">Sof foyda</div><div class="v" id="sFoy">0</div></div>
+        </div>
+        <div class="card"><h3>Rasxod turlari (tanlangan oy)</h3><div class="tw"><table id="tblTur"></table></div></div>
+        <div class="card"><h3>Oylar bo'yicha</h3><div class="tw"><table id="tblOylar"></table></div>
+          <button class="b s" style="margin-top:10px" onclick="exportXlsx()">⬇ Excel yuklab olish</button></div>
+      </div>
+      <!-- EXSON chetda -->
+      <div>
+        <div class="card exson">
+          <h3>🤲 Olloh yo'lidagi exson</h3>
+          <div class="row"><span>Foiz</span><b><span id="exFoiz">5</span>% <button class="x" onclick="editFoiz()">✎</button></b></div>
+          <div class="row"><span>Shu oy foydadan</span><b id="exOy">0</b></div>
+          <div class="row"><span>Jami hisoblangan</span><b id="exJami">0</b></div>
+          <div class="row"><span>Jami berildi</span><b id="exBer">0</b></div>
+          <div class="row"><span>Berilishi kerak</span><b id="exQol" style="font-size:20px">0</b></div>
+          <form class="f" style="margin-top:12px;grid-template-columns:1fr" onsubmit="addExson(event)">
+            <div><label>Sana</label><input type="date" id="exSana" required></div>
+            <div><label>Berilgan summa</label><input type="number" step="any" id="exSum" required></div>
+            <div><label>Izoh</label><input id="exIzoh"></div>
+            <button class="b g">Exson berdim</button>
+          </form>
+          <div id="exList" style="margin-top:10px"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TUSHUM -->
+  <section id="t-tushum" class="hide">
+    <div class="card">
+      <h3>Kunlik tushum kiritish</h3>
+      <form class="f" onsubmit="saveTushum(event)">
+        <div><label>Sana</label><input type="date" id="tuSana" required></div>
+        <div><label>Summa</label><input type="number" step="any" id="tuSum" required></div>
+        <div><label>Izoh</label><input id="tuIzoh"></div>
+        <button class="b">Saqlash</button>
+      </form>
+      <p class="muted">Shu sanaga oldin yozilgan bo'lsa, ustidan yangilanadi.</p>
+    </div>
+    <div class="card" style="margin-top:12px"><div class="tw"><table id="tblTushum"></table></div></div>
+  </section>
+
+  <!-- RASXOD -->
+  <section id="t-rasxod" class="hide">
+    <div class="card">
+      <h3>Rasxod kiritish</h3>
+      <form class="f" onsubmit="saveRasxod(event)">
+        <input type="hidden" id="raId">
+        <div><label>Sana</label><input type="date" id="raSana" required></div>
+        <div><label>Summa</label><input type="number" step="any" id="raSum" required></div>
+        <div><label>Turi</label><select id="raTur"></select></div>
+        <div><label>Kimga</label><input id="raKim" list="kimList" autocomplete="off"></div>
+        <div style="grid-column:1/-1"><label>Nima uchun / izoh</label><input id="raIzoh"></div>
+        <button class="b" id="raBtn">Qo'shish</button>
+        <button type="button" class="b s hide" id="raCancel" onclick="clearRasxod()">Bekor</button>
+      </form>
+      <datalist id="kimList"></datalist>
+      <p class="muted">Oylik berilsa: Turi = OYLIK, Kimga = xodim ismi. Qarz to'lansa: Turi = QARZ TOLOV, Kimga = yetkazuvchi.</p>
+    </div>
+    <div class="card" style="margin-top:12px"><div class="tw"><table id="tblRasxod"></table></div></div>
+  </section>
+
+  <!-- QARZ -->
+  <section id="t-qarz" class="hide">
+    <div class="card">
+      <h3>Qarzga ximiya va ehtiyot qism</h3>
+      <div class="tw"><table id="tblQarz"></table></div>
+    </div>
+    <div class="grid g3" style="margin-top:12px">
+      <div class="card"><h3>Qarzga mol olindi</h3>
+        <form class="f" style="grid-template-columns:1fr" onsubmit="addQarz(event)">
+          <div><label>Sana</label><input type="date" id="qoSana" required></div>
+          <div><label>Kimdan</label><select id="qoKim" required></select></div>
+          <div><label>Nima</label><input id="qoNima"></div>
+          <div><label>Summa</label><input type="number" step="any" id="qoSum" required></div>
+          <button class="b r">Qarzga yozish</button>
+        </form></div>
+      <div class="card"><h3>Qarz to'lash</h3>
+        <form class="f" style="grid-template-columns:1fr" onsubmit="payQarz(event)">
+          <div><label>Sana</label><input type="date" id="qtSana" required></div>
+          <div><label>Kimga</label><select id="qtKim" required></select></div>
+          <div><label>Summa</label><input type="number" step="any" id="qtSum" required></div>
+          <div><label>Izoh</label><input id="qtIzoh"></div>
+          <button class="b g">To'lash (rasxodga yoziladi)</button>
+        </form></div>
+      <div class="card"><h3>Yangi yetkazuvchi</h3>
+        <form class="f" style="grid-template-columns:1fr" onsubmit="addSup(event)">
+          <div><label>Ism</label><input id="ysIsm" required></div>
+          <div><label>Boshlang'ich qarz</label><input type="number" step="any" id="ysQarz" value="0"></div>
+          <button class="b">Qo'shish</button>
+        </form></div>
+    </div>
+    <div class="card" style="margin-top:12px"><h3>Qarzga olinganlar tarixi</h3><div class="tw"><table id="tblQarzOl"></table></div></div>
+  </section>
+
+  <!-- OYLIK -->
+  <section id="t-oylik" class="hide">
+    <div class="card">
+      <h3>Oylik maosh — <span id="oyNomi"></span></h3>
+      <div class="tw"><table id="tblOylik"></table></div>
+      <p class="muted">Minus qoldiq = belgilangandan ko'p (avans) berilgan.</p>
+    </div>
+    <div class="grid g3" style="margin-top:12px">
+      <div class="card"><h3>Oylik berish</h3>
+        <form class="f" style="grid-template-columns:1fr" onsubmit="payOylik(event)">
+          <div><label>Sana</label><input type="date" id="opSana" required></div>
+          <div><label>Xodim</label><select id="opIsm" required></select></div>
+          <div><label>Summa</label><input type="number" step="any" id="opSum" required></div>
+          <button class="b g">Berish (rasxodga yoziladi)</button>
+        </form></div>
+      <div class="card"><h3>Yangi xodim</h3>
+        <form class="f" style="grid-template-columns:1fr" onsubmit="addXodim(event)">
+          <div><label>Ism</label><input id="xoIsm" required></div>
+          <div><label>Oylik maoshi</label><input type="number" step="any" id="xoOy" required></div>
+          <button class="b">Qo'shish</button>
+        </form></div>
+    </div>
+  </section>
+</main>
+</div>
+<div id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script>
+const TURLAR=['OYLIK','XIMIYA','REMONT / EHTIYOT QISM','QARZ TOLOV','ARENDA','APARAT TOLOV','SVET','OBED','BOSHQA','BOLINMAGAN'];
+const OYLAR=['YANVAR','FEVRAL','MART','APREL','MAY','IYUN','IYUL','AVGUST','SENTYABR','OKTYABR','NOYABR','DEKABR'];
+const DEF_URL='https://scozfycitumfftdpuphd.supabase.co',DEF_KEY='sb_publishable_eD7JfcPrq6TMus9Vm6vKRQ_uWDyuQ62';
+let sb=null, D={tushum:[],rasxod:[],yet:[],qarzOl:[],xod:[],exson:[],foiz:5};
+
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt=n=>(Math.round((+n||0)*10)/10).toLocaleString('ru-RU').replace(/,/g,'.');
+const cls=n=>n<0?'neg':(n>0?'pos':'');
+const today=()=>{const d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,10)};
+const ym=s=>String(s).slice(0,7);
+const dmy=s=>{const[a,b,c]=String(s).split('-');return `${c}.${b}.${a}`};
+const oyNom=k=>{const[y,m]=k.split('-');return OYLAR[+m-1]+' '+y};
+function toast(t){const e=$('toast');e.textContent=t;e.classList.add('on');setTimeout(()=>e.classList.remove('on'),2200)}
+function err(e){console.error(e);toast('Xato: '+(e.message||e))}
+
+/* ---------- SOZLASH VA KIRISH ---------- */
+function initSb(){
+  const u=localStorage.getItem('sm_url')||DEF_URL,k=localStorage.getItem('sm_key')||DEF_KEY;
+  if(!u||!k){show('cfg');return false}
+  sb=supabase.createClient(u,k);return true;
+}
+function show(w){
+  $('auth').classList.toggle('hide',w==='app');$('app').classList.toggle('hide',w!=='app');
+  $('cfgBox').classList.toggle('hide',w!=='cfg');$('loginBox').classList.toggle('hide',w!=='login');
+}
+function saveCfg(){
+  const u=$('cfgUrl').value.trim(),k=$('cfgKey').value.trim();
+  if(!u.startsWith('https://')||k.length<20)return toast("URL yoki kalit noto'g'ri");
+  localStorage.setItem('sm_url',u);localStorage.setItem('sm_key',k);start();
+}
+function resetCfg(){localStorage.removeItem('sm_url');localStorage.removeItem('sm_key');sb=null;show('cfg')}
+async function login(){
+  const {error}=await sb.auth.signInWithPassword({email:$('lgEmail').value.trim(),password:$('lgPass').value});
+  if(error)return toast("Email yoki parol noto'g'ri");
+  enter();
+}
+async function logout(){await sb.auth.signOut();show('login')}
+async function start(){
+  if(!initSb())return;
+  const {data}=await sb.auth.getSession();
+  data.session?enter():show('login');
+}
+async function enter(){show('app');await loadAll();setDefaults();render()}
+
+/* ---------- MA'LUMOT YUKLASH ---------- */
+async function all(table,order){
+  let out=[],from=0;
+  while(true){
+    const {data,error}=await sb.from(table).select('*').order(order||'id').range(from,from+999);
+    if(error)throw error;out=out.concat(data);if(data.length<1000)break;from+=1000;
+  }
+  return out;
+}
+async function loadAll(){
+  try{
+    const [t,r,y,q,x,e,s]=await Promise.all([all('tushum','sana'),all('rasxod','sana'),all('yetkazuvchilar','kim'),all('qarz_olingan','sana'),all('xodimlar','ism'),all('exson_berildi','sana'),all('sozlamalar','kalit')]);
+    D.tushum=t;D.rasxod=r;D.yet=y;D.qarzOl=q;D.xod=x;D.exson=e;
+    const f=s.find(z=>z.kalit==='exson_foiz');D.foiz=f?+f.qiymat:5;
+  }catch(e){err(e)}
+}
+function setDefaults(){
+  ['tuSana','raSana','qoSana','qtSana','opSana','exSana'].forEach(i=>{if(!$(i).value)$(i).value=today()});
+  $('raTur').innerHTML=TURLAR.map(t=>`<option>${t}</option>`).join('');
+}
+
+/* ---------- HISOB ---------- */
+function months(){
+  const s=new Set([ym(today())]);D.tushum.forEach(r=>s.add(ym(r.sana)));D.rasxod.forEach(r=>s.add(ym(r.sana)));
+  return [...s].sort();
+}
+function oyStat(k){
+  const t=D.tushum.filter(r=>ym(r.sana)===k).reduce((a,r)=>a+ +r.summa,0);
+  const r=D.rasxod.filter(x=>ym(x.sana)===k).reduce((a,x)=>a+ +x.summa,0);
+  const f=t-r;return {t,r,f,ex:Math.max(0,f)*D.foiz/100};
+}
+
+/* ---------- CHIZISH ---------- */
+function render(){
+  const ms=months(),cur=$('oySel').value||ym(today());
+  $('oySel').innerHTML=ms.slice().reverse().map(k=>`<option value="${k}"${k===cur?' selected':''}>${oyNom(k)}</option>`).join('');
+  const k=$('oySel').value;
+  renderXisobot(k,ms);renderTushum(k);renderRasxod(k);renderQarz();renderOylik(k);
+  const names=[...new Set([...D.xod.map(x=>x.ism),...D.yet.map(y=>y.kim),...D.rasxod.map(r=>r.kimga).filter(Boolean)])].sort();
+  $('kimList').innerHTML=names.map(n=>`<option value="${esc(n)}">`).join('');
+}
+function renderXisobot(k,ms){
+  const s=oyStat(k);
+  $('sTush').textContent=fmt(s.t);$('sRas').textContent=fmt(s.r);
+  $('sFoy').textContent=fmt(s.f);$('sFoy').className='v '+cls(s.f);
+  const byT={};D.rasxod.filter(x=>ym(x.sana)===k).forEach(x=>byT[x.turi]=(byT[x.turi]||0)+ +x.summa);
+  $('tblTur').innerHTML='<tr><th>Turi</th><th class="n">Summa</th><th class="n">%</th></tr>'+
+    Object.entries(byT).sort((a,b)=>b[1]-a[1]).map(([t,v])=>`<tr><td>${esc(t)}</td><td class="n">${fmt(v)}</td><td class="n">${s.r?Math.round(v/s.r*100):0}%</td></tr>`).join('')+
+    `<tr class="tot"><td>JAMI</td><td class="n">${fmt(s.r)}</td><td></td></tr>`;
+  let T=0,R=0,F=0,E=0;
+  $('tblOylar').innerHTML='<tr><th>Oy</th><th class="n">Tushum</th><th class="n">Rasxod</th><th class="n">Sof foyda</th><th class="n">Exson</th></tr>'+
+    ms.map(m=>{const x=oyStat(m);T+=x.t;R+=x.r;F+=x.f;E+=x.ex;
+      return `<tr><td>${oyNom(m)}</td><td class="n">${fmt(x.t)}</td><td class="n">${fmt(x.r)}</td><td class="n ${cls(x.f)}">${fmt(x.f)}</td><td class="n">${fmt(x.ex)}</td></tr>`}).join('')+
+    `<tr class="tot"><td>JAMI</td><td class="n">${fmt(T)}</td><td class="n">${fmt(R)}</td><td class="n ${cls(F)}">${fmt(F)}</td><td class="n">${fmt(E)}</td></tr>`;
+  const ber=D.exson.reduce((a,x)=>a+ +x.summa,0);
+  $('exFoiz').textContent=D.foiz;$('exOy').textContent=fmt(s.ex);$('exJami').textContent=fmt(E);
+  $('exBer').textContent=fmt(ber);$('exQol').textContent=fmt(E-ber);$('exQol').className=E-ber>0?'neg':'pos';
+  $('exList').innerHTML=D.exson.slice(-5).reverse().map(x=>`<div class="row"><span class="muted">${dmy(x.sana)} ${esc(x.izoh||'')}</span><span>${fmt(x.summa)} <button class="x" onclick="del('exson_berildi',${x.id})">🗑</button></span></div>`).join('');
+}
+function renderTushum(k){
+  const rows=D.tushum.filter(r=>ym(r.sana)===k).sort((a,b)=>b.sana.localeCompare(a.sana));
+  const sum=rows.reduce((a,r)=>a+ +r.summa,0);
+  $('tblTushum').innerHTML='<tr><th>Sana</th><th class="n">Tushum</th><th>Izoh</th><th></th></tr>'+
+    rows.map(r=>`<tr><td>${dmy(r.sana)}</td><td class="n">${fmt(r.summa)}</td><td>${esc(r.izoh||'')}</td><td class="n"><button class="x" onclick="editTushum(${r.id})">✎</button><button class="x" onclick="del('tushum',${r.id})">🗑</button></td></tr>`).join('')+
+    `<tr class="tot"><td>JAMI (${rows.length} kun)</td><td class="n">${fmt(sum)}</td><td colspan="2" class="muted">o'rtacha: ${fmt(rows.length?sum/rows.length:0)}</td></tr>`;
+}
+function renderRasxod(k){
+  const rows=D.rasxod.filter(r=>ym(r.sana)===k).sort((a,b)=>b.sana.localeCompare(a.sana)||a.id-b.id);
+  let h='<tr><th>Sana</th><th class="n">Summa</th><th>Turi</th><th>Kimga</th><th>Izoh</th><th></th></tr>',last=null,tot=0;
+  rows.forEach(r=>{
+    if(r.sana!==last){last=r.sana;const dt=rows.filter(x=>x.sana===r.sana).reduce((a,x)=>a+ +x.summa,0);
+      h+=`<tr class="day"><td>${dmy(r.sana)}</td><td class="n">${fmt(dt)}</td><td colspan="4"></td></tr>`}
+    tot+= +r.summa;
+    h+=`<tr><td></td><td class="n">${fmt(r.summa)}</td><td><span class="pill">${esc(r.turi)}</span></td><td>${esc(r.kimga||'')}</td><td>${esc(r.izoh||'')}</td><td class="n"><button class="x" onclick="editRasxod(${r.id})">✎</button><button class="x" onclick="del('rasxod',${r.id})">🗑</button></td></tr>`;
+  });
+  $('tblRasxod').innerHTML=h+`<tr class="tot"><td>JAMI</td><td class="n">${fmt(tot)}</td><td colspan="4"></td></tr>`;
+}
+function renderQarz(){
+  let B=0,O=0,T=0;
+  $('tblQarz').innerHTML='<tr><th>Kim</th><th class="n">Boshlang\'ich</th><th class="n">Keyin olindi</th><th class="n">To\'landi</th><th class="n">Qoldiq qarz</th><th></th></tr>'+
+    D.yet.map(y=>{
+      const o=D.qarzOl.filter(q=>q.kim===y.kim).reduce((a,q)=>a+ +q.summa,0);
+      const t=D.rasxod.filter(r=>r.turi==='QARZ TOLOV'&&r.kimga===y.kim).reduce((a,r)=>a+ +r.summa,0);
+      const b=+y.boshlangich_qarz,q=b+o-t;B+=b;O+=o;T+=t;
+      return `<tr><td>${esc(y.kim)}</td><td class="n">${fmt(b)}</td><td class="n">${fmt(o)}</td><td class="n">${fmt(t)}</td><td class="n ${q>0?'neg':''}"><b>${fmt(q)}</b></td><td class="n"><button class="x" title="Boshlang'ich qarzni o'zgartirish" onclick="editBosh('${esc(y.kim).replace(/'/g,"\\'")}')">✎</button></td></tr>`;
+    }).join('')+`<tr class="tot"><td>JAMI</td><td class="n">${fmt(B)}</td><td class="n">${fmt(O)}</td><td class="n">${fmt(T)}</td><td class="n">${fmt(B+O-T)}</td><td></td></tr>`;
+  const opts=D.yet.map(y=>`<option>${esc(y.kim)}</option>`).join('');$('qoKim').innerHTML=opts;$('qtKim').innerHTML=opts;
+  $('tblQarzOl').innerHTML='<tr><th>Sana</th><th>Kim</th><th>Nima</th><th class="n">Summa</th><th></th></tr>'+
+    D.qarzOl.slice().reverse().map(q=>`<tr><td>${dmy(q.sana)}</td><td>${esc(q.kim)}</td><td>${esc(q.nima||'')}</td><td class="n">${fmt(q.summa)}</td><td class="n"><button class="x" onclick="del('qarz_olingan',${q.id})">🗑</button></td></tr>`).join('');
+}
+function renderOylik(k){
+  $('oyNomi').textContent=oyNom(k);
+  $('tblOylik').innerHTML='<tr><th>Xodim</th><th class="n">Oylik</th><th class="n">Berildi</th><th class="n">Qoldiq</th><th></th></tr>'+
+    D.xod.filter(x=>x.faol).map(x=>{
+      const b=D.rasxod.filter(r=>r.turi==='OYLIK'&&r.kimga===x.ism&&ym(r.sana)===k).reduce((a,r)=>a+ +r.summa,0);
+      const q=+x.oylik-b;
+      return `<tr><td>${esc(x.ism)}</td><td class="n">${fmt(x.oylik)}</td><td class="n">${fmt(b)}</td><td class="n ${q<0?'neg':''}"><b>${fmt(q)}</b></td><td class="n"><button class="x" title="Oylikni o'zgartirish" onclick="editXodim('${esc(x.ism).replace(/'/g,"\\'")}')">✎</button></td></tr>`;
+    }).join('');
+  $('opIsm').innerHTML=D.xod.filter(x=>x.faol).map(x=>`<option>${esc(x.ism)}</option>`).join('');
+}
+
+/* ---------- AMALLAR ---------- */
+async function run(p,msg){const {error}=await p;if(error){err(error);return false}await loadAll();render();if(msg)toast(msg);return true}
+const up=s=>s.trim().toUpperCase();
+async function saveTushum(e){e.preventDefault();
+  if(await run(sb.from('tushum').upsert({sana:$('tuSana').value,summa:+$('tuSum').value,izoh:$('tuIzoh').value||null},{onConflict:'sana'}),'Tushum saqlandi')){$('tuSum').value='';$('tuIzoh').value=''}}
+function editTushum(id){const r=D.tushum.find(x=>x.id===id);$('tuSana').value=r.sana;$('tuSum').value=r.summa;$('tuIzoh').value=r.izoh||'';$('tuSum').focus()}
+async function saveRasxod(e){e.preventDefault();
+  const id=$('raId').value,row={sana:$('raSana').value,summa:+$('raSum').value,turi:$('raTur').value,kimga:up($('raKim').value)||null,izoh:$('raIzoh').value.trim()||null};
+  const p=id?sb.from('rasxod').update(row).eq('id',id):sb.from('rasxod').insert(row);
+  if(await run(p,id?'Yangilandi':"Rasxod qo'shildi"))clearRasxod();}
+function editRasxod(id){const r=D.rasxod.find(x=>x.id===id);$('raId').value=id;$('raSana').value=r.sana;$('raSum').value=r.summa;$('raTur').value=r.turi;$('raKim').value=r.kimga||'';$('raIzoh').value=r.izoh||'';$('raBtn').textContent='Yangilash';$('raCancel').classList.remove('hide');window.scrollTo(0,0)}
+function clearRasxod(){$('raId').value='';$('raSum').value='';$('raKim').value='';$('raIzoh').value='';$('raBtn').textContent="Qo'shish";$('raCancel').classList.add('hide')}
+async function del(t,id){if(!confirm("O'chirilsinmi?"))return;run(sb.from(t).delete().eq('id',id),"O'chirildi")}
+async function addQarz(e){e.preventDefault();
+  if(await run(sb.from('qarz_olingan').insert({sana:$('qoSana').value,kim:$('qoKim').value,nima:$('qoNima').value||null,summa:+$('qoSum').value}),'Qarz yozildi')){$('qoSum').value='';$('qoNima').value=''}}
+async function payQarz(e){e.preventDefault();
+  if(await run(sb.from('rasxod').insert({sana:$('qtSana').value,summa:+$('qtSum').value,turi:'QARZ TOLOV',kimga:$('qtKim').value,izoh:$('qtIzoh').value||null}),"To'lov yozildi")){$('qtSum').value='';$('qtIzoh').value=''}}
+async function addSup(e){e.preventDefault();
+  if(await run(sb.from('yetkazuvchilar').insert({kim:up($('ysIsm').value),boshlangich_qarz:+$('ysQarz').value||0}),"Qo'shildi")){$('ysIsm').value='';$('ysQarz').value=0}}
+async function editBosh(kim){const y=D.yet.find(x=>x.kim===kim);const v=prompt(kim+" — boshlang'ich qarz:",y.boshlangich_qarz);if(v===null)return;
+  run(sb.from('yetkazuvchilar').update({boshlangich_qarz:+v||0}).eq('kim',kim),'Saqlandi')}
+async function payOylik(e){e.preventDefault();
+  if(await run(sb.from('rasxod').insert({sana:$('opSana').value,summa:+$('opSum').value,turi:'OYLIK',kimga:$('opIsm').value}),'Oylik yozildi'))$('opSum').value=''}
+async function addXodim(e){e.preventDefault();
+  if(await run(sb.from('xodimlar').upsert({ism:up($('xoIsm').value),oylik:+$('xoOy').value,faol:true}),"Qo'shildi")){$('xoIsm').value='';$('xoOy').value=''}}
+async function editXodim(ism){const x=D.xod.find(z=>z.ism===ism);
+  const v=prompt(ism+" — oylik maoshi (ishdan ketgan bo'lsa 0 yozing va OK):",x.oylik);if(v===null)return;
+  run(sb.from('xodimlar').update(+v>0?{oylik:+v}:{faol:false}).eq('ism',ism),'Saqlandi')}
+async function addExson(e){e.preventDefault();
+  if(await run(sb.from('exson_berildi').insert({sana:$('exSana').value,summa:+$('exSum').value,izoh:$('exIzoh').value||null}),'Exson yozildi')){$('exSum').value='';$('exIzoh').value=''}}
+async function editFoiz(){const v=prompt('Exson foizi:',D.foiz);if(v===null||isNaN(+v))return;
+  run(sb.from('sozlamalar').upsert({kalit:'exson_foiz',qiymat:String(+v)}),'Saqlandi')}
+
+/* ---------- EXCEL ---------- */
+function exportXlsx(){
+  const wb=XLSX.utils.book_new();
+  const ms=months();
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([['OY','TUSHUM','RASXOD','SOF FOYDA','EXSON'],...ms.map(m=>{const s=oyStat(m);return [oyNom(m),s.t,s.r,s.f,+s.ex.toFixed(1)]})]),'XISOBOT');
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([['SANA','TUSHUM','IZOH'],...D.tushum.map(r=>[dmy(r.sana),+r.summa,r.izoh||''])]),'KUNLIK TUSHUM');
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([['SANA','SUMMA','TURI','KIMGA','IZOH'],...D.rasxod.map(r=>[dmy(r.sana),+r.summa,r.turi,r.kimga||'',r.izoh||''])]),'KUNLIK RASXOD');
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([['SANA','KIM','NIMA','SUMMA'],...D.qarzOl.map(q=>[dmy(q.sana),q.kim,q.nima||'',+q.summa])]),'QARZGA OLINGAN');
+  XLSX.writeFile(wb,'SAMMOYKA_'+today()+'.xlsx');
+}
+
+/* ---------- TABLAR ---------- */
+document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('#tabs button').forEach(x=>x.classList.toggle('on',x===b));
+  document.querySelectorAll('main>section').forEach(s=>s.classList.toggle('hide',s.id!=='t-'+b.dataset.t));
+});
+start();
+</script>
+</body>
+</html>
