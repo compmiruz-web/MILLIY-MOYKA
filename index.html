@@ -257,8 +257,9 @@ input:focus,select:focus{border-color:var(--pri2);background:#fff;box-shadow:0 0
 
   <!-- QARZ -->
   <section id="t-qarz" class="hide">
-    <div class="sect-t">📦 Qarzga ximiya va ehtiyot qism</div>
-    <div class="card"><div class="tw"><table id="tblQarz"></table></div></div>
+    <div class="sect-t">📦 Qarzga ximiya va ehtiyot qism <button class="btn s" id="qHistBtn" style="margin-left:auto;padding:8px 12px;font-size:14px" onclick="qHist=!qHist;renderQarz()">🕓 Tarix</button></div>
+    <div class="card hide" id="qHistBox" style="margin-bottom:14px;border:2px solid #cfe0f5"></div>
+    <div class="card"><h3>🔴 Hozirgi qarzlar</h3><div class="tw"><table id="tblQarz"></table></div></div>
     <div class="grid g3f" style="margin-top:14px">
       <div class="card"><h3>🔴 Qarzga mol olindi</h3>
         <form class="v" onsubmit="addQarz(event)">
@@ -283,7 +284,7 @@ input:focus,select:focus{border-color:var(--pri2);background:#fff;box-shadow:0 0
           <button class="btn">Qo'shish</button>
         </form></div>
     </div>
-    <div class="card" style="margin-top:14px"><h3>🕓 Qarzga olinganlar tarixi</h3><div class="tw"><table id="tblQarzOl"></table></div></div>
+    <div class="card" style="margin-top:14px"><h3>📦 Qarzga olingan mollar <span class="muted" style="font-weight:500;font-size:13px">(qarzi bor yetkazuvchilar)</span></h3><div class="tw"><table id="tblQarzOl"></table></div></div>
   </section>
 
   <!-- OYLIK -->
@@ -349,7 +350,7 @@ input:focus,select:focus{border-color:var(--pri2);background:#fff;box-shadow:0 0
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script>
 /* ======== VERSIYA (har yangilanishda version.json bilan birga oshiriladi) ======== */
-const APP_V='2026.11.12-5';
+const APP_V='2026.11.12-6';
 
 const TURLAR=['OYLIK','XIMIYA','REMONT / EHTIYOT QISM','QARZ TOLOV','ARENDA','APARAT TOLOV','SVET','OBED','BOSHQA','BOLINMAGAN'];
 const TCOL={'OYLIK':'#dbeafe','XIMIYA':'#dcfce7','REMONT / EHTIYOT QISM':'#ffedd5','QARZ TOLOV':'#fee2e2','ARENDA':'#ede9fe','APARAT TOLOV':'#f3e8ff','SVET':'#fef9c3','OBED':'#f1f5f9','BOSHQA':'#e2e8f0','BOLINMAGAN':'#e5e7eb'};
@@ -539,18 +540,39 @@ function renderRasxod(k){
   });
   $('tblRasxod').innerHTML=h+`<tr class="tot"><td>JAMI</td><td class="n">${fmt(tot)}</td><td colspan="4"></td></tr></tbody>`;
 }
+let qHist=false;
+function qStat(y){
+  const o=D.qarzOl.filter(q=>q.kim===y.kim).reduce((a,q)=>a+ +q.summa,0);
+  const pays=D.rasxod.filter(r=>r.turi==='QARZ TOLOV'&&r.kimga===y.kim);
+  const t=pays.reduce((a,r)=>a+ +r.summa,0), b=+y.boshlangich_qarz;
+  const last=[...D.qarzOl.filter(q=>q.kim===y.kim).map(q=>q.sana),...pays.map(r=>r.sana)].sort().pop()||'';
+  return {b,o,t,q:b+o-t,pays,last,done:(b+o)>0&&b+o-t<=0};
+}
 function renderQarz(){
   let B=0,O=0,T=0;
+  const st=D.yet.map((y,i)=>({y,i,...qStat(y)}));
+  const act=st.filter(x=>!x.done), done=st.filter(x=>x.done);
   $('tblQarz').innerHTML='<thead><tr><th>Kim</th><th class="n">Boshlang\'ich</th><th class="n">Olindi</th><th class="n">To\'landi</th><th class="n">Qoldiq qarz</th><th></th></tr></thead><tbody>'+
-    D.yet.map((y,i)=>{
-      const o=D.qarzOl.filter(q=>q.kim===y.kim).reduce((a,q)=>a+ +q.summa,0);
-      const t=D.rasxod.filter(r=>r.turi==='QARZ TOLOV'&&r.kimga===y.kim).reduce((a,r)=>a+ +r.summa,0);
-      const b=+y.boshlangich_qarz,q=b+o-t;B+=b;O+=o;T+=t;
+    (act.map(({y,i,b,o,t,q})=>{B+=b;O+=o;T+=t;
       return `<tr><td><b>${esc(y.kim)}</b></td><td class="n">${fmt(b)}</td><td class="n">${fmt(o)}</td><td class="n">${fmt(t)}</td><td class="n ${q>0?'neg':q<0?'muted':''}"><b>${fmt(q)}</b></td><td class="n"><button class="ib" title="Boshlang'ich qarz" onclick="editBosh(${i})">✎</button></td></tr>`;
-    }).join('')+`<tr class="tot"><td>JAMI</td><td class="n">${fmt(B)}</td><td class="n">${fmt(O)}</td><td class="n">${fmt(T)}</td><td class="n">${fmt(B+O-T)}</td><td></td></tr></tbody>`;
+    }).join('')||'<tr><td colspan="6" class="empty">🎉 Hozir hech kimdan qarz yo\'q</td></tr>')+`<tr class="tot"><td>JAMI</td><td class="n">${fmt(B)}</td><td class="n">${fmt(O)}</td><td class="n">${fmt(T)}</td><td class="n">${fmt(B+O-T)}</td><td></td></tr></tbody>`;
   const opts=D.yet.map(y=>`<option>${esc(y.kim)}</option>`).join('');$('qoKim').innerHTML=opts;$('qtKim').innerHTML=opts;
-  $('tblQarzOl').innerHTML=D.qarzOl.length?'<thead><tr><th>Sana</th><th>Kim</th><th>Nima</th><th class="n">Summa</th><th></th></tr></thead><tbody>'+
-    D.qarzOl.slice().reverse().map(q=>`<tr><td>${dmy(q.sana)}</td><td><b>${esc(q.kim)}</b></td><td class="muted">${esc(q.nima||'')}</td><td class="n">${fmt(q.summa)}</td><td class="n"><button class="ib" onclick="del('qarz_olingan',${q.id})">🗑</button></td></tr>`).join('')+'</tbody>':'<tr><td class="empty">Hali qarzga mol yozilmagan</td></tr>';
+  const actK=new Set(act.map(x=>x.y.kim)), olA=D.qarzOl.filter(q=>actK.has(q.kim));
+  const olRow=q=>`<tr><td>${dmy(q.sana)}</td><td><b>${esc(q.kim)}</b></td><td class="muted">${esc(q.nima||'')}</td><td class="n">${fmt(q.summa)}</td><td class="n"><button class="ib" onclick="del('qarz_olingan',${q.id})">🗑</button></td></tr>`;
+  $('tblQarzOl').innerHTML=olA.length?'<thead><tr><th>Sana</th><th>Kim</th><th>Nima</th><th class="n">Summa</th><th></th></tr></thead><tbody>'+olA.slice().reverse().map(olRow).join('')+'</tbody>':'<tr><td class="empty">Qarzi bor yetkazuvchidan olingan mol yo\'q</td></tr>';
+  // Tarix
+  const allPays=D.rasxod.filter(r=>r.turi==='QARZ TOLOV').slice().sort((a,b)=>a.sana<b.sana?1:-1);
+  $('qHistBtn').innerHTML=`🕓 Tarix${allPays.length?` <span class="pill" style="background:#0a4fa3;color:#fff">${allPays.length}</span>`:''}`;
+  $('qHistBtn').className='btn '+(qHist?'':'s');
+  const box=$('qHistBox'); box.classList.toggle('hide',!qHist); if(!qHist) return;
+  box.innerHTML=`<h3>🕓 Tarix <button class="ib" style="margin-left:auto" title="Yopish" onclick="qHist=false;renderQarz()">✕</button></h3>
+    <h4 style="margin:6px 0 8px">✅ Qarzdan qutilganlar (${done.length})</h4>
+    <div class="tw"><table>${done.length?'<thead><tr><th>Kim</th><th class="n">Jami olindi</th><th class="n">Jami to\'landi</th><th>Qutilgan sana</th></tr></thead><tbody>'+
+      done.sort((a,b)=>a.last<b.last?1:-1).map(x=>`<tr style="background:#ecfdf5"><td><b>${esc(x.y.kim)}</b> <span class="pill" style="background:#d1fae5;color:#047857">Qarz yo'q</span></td><td class="n">${fmt(x.b+x.o)}</td><td class="n">${fmt(x.t)}</td><td>${x.last?dmy(x.last):'—'}</td></tr>`).join('')+'</tbody>':'<tr><td class="empty">Hali qarzdan to\'liq qutilgan yetkazuvchi yo\'q</td></tr>'}</table></div>
+    <h4 style="margin:16px 0 8px">💸 Berilgan qarzlar (to'lovlar) — ${allPays.length} ta · jami ${fmt(allPays.reduce((a,r)=>a+ +r.summa,0))}</h4>
+    <div class="tw"><table>${allPays.length?'<thead><tr><th>Sana</th><th>Kimga</th><th class="n">Summa</th><th>Izoh</th><th></th></tr></thead><tbody>'+
+      allPays.map(r=>`<tr><td>${dmy(r.sana)}</td><td><b>${esc(r.kimga||'')}</b>${done.some(x=>x.y.kim===r.kimga)?' <span class="pill" style="background:#d1fae5;color:#047857">✓</span>':''}</td><td class="n pos"><b>${fmt(r.summa)}</b></td><td class="muted">${esc(r.izoh||'')}</td><td class="n"><button class="ib" onclick="del('rasxod',${r.id})">🗑</button></td></tr>`).join('')+'</tbody>':'<tr><td class="empty">Hali qarz to\'lanmagan</td></tr>'}</table></div>
+    ${done.length?`<h4 style="margin:16px 0 8px">📦 Qutilganlardan olingan mollar</h4><div class="tw"><table><thead><tr><th>Sana</th><th>Kim</th><th>Nima</th><th class="n">Summa</th><th></th></tr></thead><tbody>${D.qarzOl.filter(q=>done.some(x=>x.y.kim===q.kim)).slice().reverse().map(olRow).join('')}</tbody></table></div>`:''}`;
 }
 function renderOylik(k){
   $('oyNomi').textContent=oyNom(k);
