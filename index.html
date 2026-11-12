@@ -64,8 +64,8 @@ button.x{border:0;background:none;cursor:pointer;font-size:16px;padding:2px 6px}
     <button class="b" style="margin-top:12px;width:100%" onclick="saveCfg()">Saqlash</button>
   </div>
   <div id="loginBox" class="hide">
-    <label>Email</label><input id="lgEmail" type="email" autocomplete="username">
-    <label style="margin-top:8px">Parol</label><input id="lgPass" type="password" autocomplete="current-password">
+    <label>Login</label><input id="lgEmail" autocomplete="username" autocapitalize="off">
+    <label style="margin-top:8px">Parol</label><input id="lgPass" type="password" inputmode="numeric" autocomplete="current-password" onkeydown="if(event.key==='Enter')login()">
     <button class="b" style="margin-top:12px;width:100%" onclick="login()">Kirish</button>
     <p class="muted" style="margin-top:12px"><a href="#" onclick="resetCfg();return false">Supabase sozlamasini o'zgartirish</a></p>
   </div>
@@ -253,7 +253,11 @@ function saveCfg(){
 }
 function resetCfg(){localStorage.removeItem('sm_url');localStorage.removeItem('sm_key');sb=null;show('cfg')}
 async function login(){
-  const {error}=await sb.auth.signInWithPassword({email:$('lgEmail').value.trim(),password:$('lgPass').value});
+  // Login: "Umar" -> umar@sammoyka.app ; qisqa PIN -> PIN-moyka (Supabase kamida 6 belgi talab qiladi)
+  let l=$('lgEmail').value.trim(),p=$('lgPass').value;
+  if(!l.includes('@'))l=l.toLowerCase()+'@sammoyka.app';
+  if(p.length<6)p=p+'-moyka';
+  const {error}=await sb.auth.signInWithPassword({email:l,password:p});
   if(error)return toast("Email yoki parol noto'g'ri");
   enter();
 }
