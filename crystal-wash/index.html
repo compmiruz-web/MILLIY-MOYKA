@@ -70,6 +70,14 @@ tr.tot td{font-weight:800;background:#f7f9fc}
 #banner{background:#fff3cd;color:#7a5600}
 #upd{position:fixed;left:12px;right:12px;bottom:calc(76px + env(safe-area-inset-bottom));z-index:40;background:#14213d;color:#fff;border-radius:12px;box-shadow:0 6px 20px rgba(0,0,0,.25)}
 #toast{position:fixed;left:50%;top:calc(env(safe-area-inset-top) + 70px);transform:translateX(-50%);background:#14213d;color:#fff;padding:9px 14px;border-radius:10px;z-index:60;display:none;font-size:14px}
+.bars{display:flex;align-items:flex-end;gap:8px;height:170px;padding-top:8px;overflow-x:auto}
+.bar{flex:1;min-width:34px;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;cursor:pointer}
+.bar .cols{flex:1;width:100%;display:flex;align-items:flex-end;justify-content:center;gap:3px}
+.bar .c{width:42%;max-width:18px;border-radius:4px 4px 0 0;min-height:2px}
+.bar .c.t{background:var(--pri)}.bar .c.x{background:var(--bad)}
+.bar span{font-size:10px;color:var(--mut);font-weight:700}
+.bar.on span{color:var(--pri)}.bar.on .cols{background:#eef4ff;border-radius:6px}
+.legend{display:flex;gap:14px;font-size:12px;color:var(--mut);margin-top:6px}.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px;vertical-align:-1px}
 .sec{display:none}.sec.on{display:block}
 </style>
 </head>
@@ -108,7 +116,7 @@ tr.tot td{font-weight:800;background:#f7f9fc}
 
 <script>
 // ===== SOZLAMA =====
-const APP_V = 2;
+const APP_V = 3;
 const SB_URL = 'https://scozfycitumfftdpuphd.supabase.co';
 const SB_KEY = 'sb_publishable_eD7JfcPrq6TMus9Vm6vKRQ_uWDyuQ62';
 const PFX = 'cw_'; // CRYSTAL WASH jadvallari (MILLIY-MOYKA bilan aralashmaydi)
@@ -227,9 +235,28 @@ function rXisobot(){
     ${rows||'<tr><td colspan="5" class="empty">Bu oyda yozuv yo\'q</td></tr>'}
     ${rows?`<tr class="tot"><td>JAMI</td><td class="n">${fmt(t)}</td><td class="n">${fmt(r)}</td><td class="n">${fmt(f)}</td><td></td></tr>`:''}
   </table></div></div>
+  ${oylarHtml()}
   ${tRows?`<div class="card"><h3>Rasxod turlari bo'yicha</h3><div class="tw"><table><tr><th>Turi</th><th class="n">Summa</th><th class="n">Ulush</th></tr>${tRows}</table></div></div>`:''}`;
 }
 
+
+const OYQ=['YAN','FEV','MAR','APR','MAY','IYN','IYL','AVG','SEN','OKT','NOY','DEK'];
+function allMonths(){const s=new Set();D.tushum.forEach(x=>s.add(x.sana.slice(0,7)));D.rasxod.forEach(x=>s.add(x.sana.slice(0,7)));return [...s].sort()}
+function oylarHtml(){
+  const ms=allMonths();if(!ms.length)return '';
+  const st=ms.map(m=>({m,...monthProfit(m)}));
+  const last=st.slice(-12);const mx=Math.max(1,...last.map(x=>Math.max(x.t,x.r)));
+  let T=0,R=0,F=0,E=0;
+  const rows=st.slice().reverse().map(x=>{T+=x.t;R+=x.r;F+=x.f;E+=x.e;
+    return `<tr style="cursor:pointer${x.m===MON?';background:#eef4ff':''}" onclick="setMonth('${x.m}');scrollTo(0,0)"><td><b>${monName(x.m)}</b></td><td class="n">${fmt(x.t)}</td><td class="n">${fmt(x.r)}</td><td class="n ${x.f<0?'neg':'pos'}"><b>${fmt(x.f)}</b></td><td class="n">${fmt(x.e)}</td></tr>`}).join('');
+  return `<div class="card"><h3>📈 Oylar dinamikasi <small style="font-weight:400;color:var(--mut);font-size:12px">— ustunni bosing, oy ochiladi</small></h3>
+    <div class="bars">${last.map(x=>`<div class="bar${x.m===MON?' on':''}" onclick="setMonth('${x.m}')" title="${monName(x.m)}: tushum ${fmt(x.t)}, rasxod ${fmt(x.r)}"><div class="cols"><div class="c t" style="height:${x.t/mx*100}%"></div><div class="c x" style="height:${x.r/mx*100}%"></div></div><span>${OYQ[+x.m.slice(5)-1]}</span></div>`).join('')}</div>
+    <div class="legend"><span><i style="background:var(--pri)"></i>Tushum</span><span><i style="background:var(--bad)"></i>Rasxod</span></div></div>
+  <div class="card"><h3>📋 Barcha oylar bo'yicha</h3><div class="tw"><table>
+    <tr><th>Oy</th><th class="n">Tushum</th><th class="n">Rasxod</th><th class="n">Sof foyda</th><th class="n">Exson ${exsonFoiz()}%</th></tr>
+    ${rows}<tr class="tot"><td>JAMI</td><td class="n">${fmt(T)}</td><td class="n">${fmt(R)}</td><td class="n ${F<0?'neg':''}">${fmt(F)}</td><td class="n">${fmt(E)}</td></tr>
+  </table></div></div>`;
+}
 function moneyInput(id,ph){return `<input id="${id}" data-keep inputmode="decimal" placeholder="${ph||'ming so\'mda'}" oninput="mHint(this)"><div class="hint" id="${id}_h">&nbsp;</div>`}
 
 function rTushum(){

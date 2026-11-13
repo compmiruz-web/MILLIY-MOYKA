@@ -3,7 +3,8 @@
 Faqat CRYSTAL WASH SAM MOYKA xisob-kitob dasturi. MILLIY-MOYKA, COMPMIR, COM-TECH bilan aralashtirilmaydi.
 
 ## Holat (13.11.2026)
-- Versiya: APP_V = 2 (version.json → {"v":2})
+- Versiya: APP_V = 3 (version.json → {"v":3})
+- v3: Xisobotda "📈 Oylar dinamikasi" (oxirgi 12 oy ustunlari, bosilsa oy ochiladi) va "📋 Barcha oylar bo'yicha" jadvali (tushum, rasxod, sof foyda, exson, JAMI)
 - v2: qarzlar so'm va $ da (valyuta tanlanadi, eslab qolinadi); boshlang'ich qarz so'm va $; $ to'lovida kurs so'raladi — rasxodga so'mda, usd va kurs ham saqlanadi
 - 1-bosqich (asosiy dastur) — kod tayyor, telefon o'lchamida sinab ko'rildi
 - Baza: MILLIY-MOYKA bilan bitta Supabase loyihasi "sammoyka" (scozfycitumfftdpuphd) — rahbar qarori 13.11.2026
@@ -47,8 +48,8 @@ Faqat CRYSTAL WASH SAM MOYKA xisob-kitob dasturi. MILLIY-MOYKA, COMPMIR, COM-TEC
 - Bot: @crystal_washbot, guruh "Crystal Wash" (chat_id -5358505217)
 - Edge funksiya: cw-qarz-bot (verify_jwt o'chiq, o'rniga x-cw-key sarlavhasi tekshiriladi)
   - ?amal=chats — bot turgan guruhlar ro'yxati; ?amal=test — sinov xabari; ?force=1 — tungi vaqtda ham yuborish
-  - ?amal=kunlik[&sana=YYYY-MM-DD] — kunlik xisobot: kun tushumi, rasxodi (turlar bo'yicha), kun qoldig'i, oy boshidan tushum/rasxod/sof foyda/exson, berilishi kerak exson
-- Jadval: pg_cron "cw-kunlik-xisobot" — har kuni 22:00 Toshkent (0 17 * * * UTC)
+  - ?amal=kunlik — standart kechagi kun; &sana=YYYY-MM-DD istalgan kun; &bugun=1 bugungi kun. Tarkibi: kun tushumi, rasxodi (turlar bo'yicha), kun qoldig'i, oy boshidan tushum/rasxod/sof foyda/exson, berilishi kerak exson
+- Jadval: pg_cron "cw-kunlik-xisobot" — har kuni 09:00 Toshkent (0 4 * * * UTC), KECHAGI kunning xisoboti (masalan 12.11 xisoboti 13.11 ertalab)
 - Jadval: pg_cron "cw-qarz-eslatma" — kuniga 1 marta, 09:00 Toshkent (0 4 * * * UTC); qarz bo'lmasa jim
 - Sozlamalar yopiq jadvalda: cw_bot (bot_token, chat_id, cron_key) — RLS yoqilgan, anon/authenticated uchun yopiq
 - Xabar: har bir yetkazuvchining so'm va $ qoldig'i + jami
