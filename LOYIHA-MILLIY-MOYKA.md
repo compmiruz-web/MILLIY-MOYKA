@@ -20,3 +20,7 @@ Bu loyiha faqat MILLIY-MOYKA (sammoyka) xisob-kitob dasturi uchun. COMPMIR va CO
 ## Kelishuvlar
 - Egasining asl Excel fayllari: kompyuterda Downloads/Telegram Desktop: "SAMMOYKA KUNLIK XISOB KITOB …", "RASXOD …", "QARZLARIMIZ …"
 - Parol/PIN'ni Claude o'zi o'ylab kiritmaydi — rahbar o'zi kiritadi
+
+## 2026-11-14
+- Excel hisobot COMPMIR uslubida (xlsx-js-style): XULOSA, har oy varaq (sana, kun, daromad, rasxod, qoldiq, sabab; oylik yakun, rasxod turlari), QARZLAR, har sherik varag'i; summalar to'liq so'mda, formulalar bilan
+- Telegram kunlik hisobot: edge funksiya "kunlik-hisobot" (verify_jwt o'chiq, x-cron-key bilan), sozlamalar jadvali bot_sozlama (chat_id, cron_key; RLS yopiq), bot tokeni — edge secret TG_TOKEN; pg_cron "kunlik-hisobot" har kuni 22:00 Toshkent (17:00 UTC) → public.kunlik_hisobot_yubor(); qo'lda: select public.kunlik_hisobot_yubor();
