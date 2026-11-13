@@ -391,10 +391,10 @@ input:focus,select:focus{border-color:var(--pri2);background:#fff;box-shadow:0 0
 <div id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
 <script>
 /* ======== VERSIYA (har yangilanishda version.json bilan birga oshiriladi) ======== */
-const APP_V='2026.11.12-17';
+const APP_V='2026.11.14-1';
 
 const TURLAR=['OYLIK','XIMIYA','REMONT / EHTIYOT QISM','QARZ TOLOV','ARENDA','APARAT TOLOV','SVET','OBED','BOSHQA','BOLINMAGAN'];
 const TCOL={'OYLIK':'#dbeafe','XIMIYA':'#dcfce7','REMONT / EHTIYOT QISM':'#ffedd5','QARZ TOLOV':'#fee2e2','ARENDA':'#ede9fe','APARAT TOLOV':'#f3e8ff','SVET':'#fef9c3','OBED':'#f1f5f9','BOSHQA':'#e2e8f0','BOLINMAGAN':'#e5e7eb'};
@@ -962,45 +962,111 @@ async function addExson(e){e.preventDefault();
 async function editFoiz(){const v=await ask('Exson foizi (%):',D.foiz);if(v===null||v===''||isNaN(+v))return;
   run(sb.from('sozlamalar').upsert({kalit:'exson_foiz',qiymat:String(+v)}),'Saqlandi')}
 
-/* ---------- EXCEL ---------- */
-function exportXlsx(){
-  // Ko'rinish: "SAMMOYKA KUNLIK XISOB KITOB" fayli kabi — har oy alohida varaq, summalar ming so'mda
-  const wb=XLSX.utils.book_new(), ms=months().filter(m=>D.tushum.some(r=>ym(r.sana)===m)||D.rasxod.some(r=>ym(r.sana)===m));
-  const OY=['YANVAR','FEVRAL','MART','APREL','MAY','IYUN','IYUL','AVGUST','SENTYABR','OKTYABR','NOYABR','DEKABR'];
-  const ming=v=>Math.round((+v||0)/K*100)/100;
-  const ser=d=>{const[y,m,dd]=d.split('-').map(Number);return Date.UTC(y,m-1,dd)/864e5+25569};
-  const dcell=d=>({t:'n',v:ser(d),z:'dd.mm.yyyy'});
-  const used=new Set();
-  ms.forEach(k=>{
-    const [y,m]=k.split('-').map(Number), n=new Date(Date.UTC(y,m,0)).getUTCDate();
-    const aoa=[['SANA ','DAROMAT','SANA ','RASXOD','SABAB','OSTATKA','OYLIK DAROMAD JAMI',(D.foiz||5)/100]];
-    for(let d=1;d<=n;d++){
-      const ds=`${k}-${String(d).padStart(2,'0')}`, t=D.tushum.find(r=>r.sana===ds), rs=D.rasxod.filter(r=>r.sana===ds);
-      const rsum=rs.reduce((a,r)=>a+ +r.summa,0);
-      const sabab=rs.map(r=>{const kg=(r.kimga||'').trim(), iz=(r.izoh||'').trim(); const nm=(iz&&kg&&iz.toUpperCase().includes(kg.toUpperCase())?iz:[kg,iz].filter(Boolean).join(' '))||r.turi||'';return `${nm.toUpperCase()} - ${ming(r.summa)}`}).join('   ');
-      aoa.push([ds,t?ming(t.summa):(ds<=today()?0:null),ds,rs.length?ming(rsum):(ds<=today()?0:null),sabab||null,null,null,null]);
-    }
-    const ws=XLSX.utils.aoa_to_sheet(aoa);
-    for(let r=2;r<=n+1;r++){ws['A'+r]=dcell(aoa[r-1][0]);ws['C'+r]=dcell(aoa[r-1][2]);}
-    ws['F2']={t:'n',f:'SUM(B:B)-SUM(D:D)'}; ws['G2']={t:'n',f:'SUM(B:B)'};
-    ws['!cols']=[{wch:15},{wch:14},{wch:15},{wch:12},{wch:Math.min(120,Math.max(30,...aoa.map(a=>String(a[4]||'').length)))},{wch:13},{wch:30},{wch:9}];
-    let nm=OY[m-1]; if(used.has(nm)) nm+=' '+y; used.add(nm);
-    XLSX.utils.book_append_sheet(wb,ws,nm);
+/* ---------- EXCEL (chiroyli: rangli bo'limlar, kataklar moslangan) ---------- */
+const XC={ink:'16132E',head:'1F1A4D',title:'1D4ED8',teal:'0E8F93',zebra:'F4F7FD',line:'D6DEEC',white:'FFFFFF',muted:'8A93A8',red:'FDE4EA',redf:'C2263F',green:'E3F6EC',
+  sec:['2B67D1','0E8F93','D0457A','6447EE','B26A00','3B8F3B','8A4FD8','0F6B66']};
+const xbd=c=>({style:'thin',color:{rgb:c}}), XBORD={top:xbd(XC.line),bottom:xbd(XC.line),left:xbd(XC.line),right:xbd(XC.line)};
+const XFMT={uzs:'#,##0',usd:'"$"#,##0.00',date:'dd.mm.yyyy',int:'0'};
+const xVal=v=>v&&typeof v==='object'?(v.f?'1 000 000 000':v.v):v;
+const xLen=(v,t)=>{v=xVal(v); if(v==null||v==='') return 0; if(t==='date') return 10; if(typeof v==='number') return t==='usd'?v.toFixed(2).length+3:Math.round(v).toLocaleString('en-US').length+1; return Math.max(...String(v).split('\n').map(l=>l.length));};
+function xSheet(title,sub,cols,rows){
+  const n=cols.length, aoa=[[title],[sub],cols.map(c=>c.h),...rows.map(r=>r.v)];
+  const ws=XLSX.utils.aoa_to_sheet(aoa), merges=[{s:{r:0,c:0},e:{r:0,c:n-1}},{s:{r:1,c:0},e:{r:1,c:n-1}}];
+  const cell=(r,c)=>{const a=XLSX.utils.encode_cell({r,c});return ws[a]||(ws[a]={t:'s',v:''})};
+  for(let c=0;c<n;c++){
+    cell(0,c).s={fill:{fgColor:{rgb:XC.title}},font:{bold:true,sz:15,color:{rgb:XC.white}},alignment:{vertical:'center'}};
+    cell(1,c).s={fill:{fgColor:{rgb:XC.head}},font:{sz:10,color:{rgb:'BFD3FF'}},alignment:{vertical:'center'}};
+    cell(2,c).s={fill:{fgColor:{rgb:XC.teal}},font:{bold:true,sz:10,color:{rgb:XC.white}},border:XBORD,alignment:{horizontal:'center',vertical:'center',wrapText:true}};
+  }
+  let z=0;
+  rows.forEach((r,i)=>{const R=i+3;
+    if(r.k==='sec'){merges.push({s:{r:R,c:0},e:{r:R,c:n-1}});z=0;
+      for(let c=0;c<n;c++) cell(R,c).s={fill:{fgColor:{rgb:r.fill||XC.sec[0]}},font:{bold:true,sz:12,color:{rgb:XC.white}},alignment:{vertical:'center'}};
+      return;}
+    const tot=r.k==='sub'||r.k==='tot', bg=r.k==='tot'?XC.head:r.k==='sub'?'E6EEFC':r.fill||(z++%2?XC.zebra:XC.white);
+    for(let c=0;c<n;c++){const x=cell(R,c), t=cols[c].t;
+      x.s={fill:{fgColor:{rgb:(r.cellFill&&r.cellFill[c])||bg}},border:XBORD,
+        font:{sz:10,bold:tot,color:{rgb:r.k==='tot'?XC.white:(r.cellFont&&r.cellFont[c])||r.font||XC.ink}},
+        alignment:{vertical:'top',wrapText:!!cols[c].wrap,horizontal:x.t==='n'&&t&&t!=='txt'?'right':(x.t==='n'?'right':'left')}};
+      if(x.t==='n'&&t&&XFMT[t]) x.s.numFmt=XFMT[t];}
   });
-  // Qarzlar: "QARZLARIMIZ → KUNLIK" varag'i kabi
-  const qa=[['SOTUVCHILAR ','OSTATKA','SANA','YANGI QARZ','SANA','SUMMA','OSTATKA QARZ',"TO'LANDI",'OSTATKA $','SUMMA $','OSTATKA QARZ $',"TO'LANDI $"]];
-  D.yet.forEach(y=>{const st=qStat(y), ol=D.qarzOl.filter(q=>q.kim===y.kim), lo=ol.map(q=>q.sana).sort().pop()||'', lp=st.pays.map(r=>r.sana).sort().pop()||'';
-    qa.push([y.kim,ming(st.uzs.b),lo||null,ol.map(q=>`${q.nima||'MOL'} - ${q.valyuta==='usd'?(+q.summa)+' $':ming(q.summa)}`).join('  ')||0,lp||null,ming(st.uzs.o),null,ming(st.uzs.t),st.usd.b,st.usd.o,null,st.usd.t]);});
-  const wq=XLSX.utils.aoa_to_sheet(qa);
-  for(let r=2;r<=qa.length;r++){ if(qa[r-1][2]) wq['C'+r]=dcell(qa[r-1][2]); if(qa[r-1][4]) wq['E'+r]=dcell(qa[r-1][4]); wq['G'+r]={t:'n',f:`B${r}+F${r}-H${r}`}; wq['K'+r]={t:'n',f:`I${r}+J${r}-L${r}`}; }
-  wq['!cols']=[{wch:25},{wch:15},{wch:11},{wch:40},{wch:11},{wch:13},{wch:24},{wch:12},{wch:12},{wch:12},{wch:16},{wch:12}];
-  XLSX.utils.book_append_sheet(wb,wq,'QARZLAR');
-  (D.sher||[]).forEach(x=>{const c=shCalc(x.ism), sv=o=>[o.usd?`${Math.round(o.usd*100)/100} $`:null,o.uzs?`${fmt(o.uzs)} SO'M`:null].filter(Boolean).join(' + ');
-    const a=[['XAQDOR','SUMMA','NIMA UCHUN','SANA']]; c.act.forEach(h=>a.push([h.xaqdor,sv(h.q),h.izoh.join(', '),h.last?dmy(h.last):'']));
-    a.push([],['JAMI',sv(c.tot)],[],['SHAXSIY PUL']); c.R.filter(r=>r.turi==='shaxsiy'||r.turi==='shaxsiy_qaytar').forEach(r=>{const q=r.turi==='shaxsiy_qaytar';a.push([q?x.ism+' (QAYTARILDI)':x.ism,(q?'-':'')+(r.valyuta==='usd'?`${+r.summa} $`:`${fmt(r.summa)} SO'M`),r.izoh||'',dmy(r.sana)])}); a.push(['QOLDIQ',sv(c.own)]);
-    const w=XLSX.utils.aoa_to_sheet(a); w['!cols']=[{wch:26},{wch:18},{wch:30},{wch:12}]; XLSX.utils.book_append_sheet(wb,w,x.ism.slice(0,31));});
-  const t=today().split('-').reverse().join('.');
-  XLSX.writeFile(wb,`SAMMOYKA KUNLIK XISOB KITOB ${t}.xlsx`);
+  ws['!merges']=merges;
+  ws['!cols']=cols.map((c,i)=>({wch:Math.min(c.max||40,Math.max(c.min||6,Math.ceil(c.h.length*0.8)+2,...rows.filter(r=>r.k!=='sec').map(r=>xLen(r.v[i],c.t)+2)))}));
+  ws['!rows']=[{hpt:28},{hpt:18},{hpt:30}];
+  ws['!freeze']={xSplit:0,ySplit:3}; ws['!views']=[{state:'frozen',ySplit:3}];
+  return ws;
+}
+function exportXlsx(){
+  const wb=XLSX.utils.book_new(), foiz=(D.foiz||5)/100, nom='MILLIY MOYKA';
+  const ms=months().filter(m=>D.tushum.some(r=>ym(r.sana)===m)||D.rasxod.some(r=>ym(r.sana)===m)).sort();
+  const OY=['YANVAR','FEVRAL','MART','APREL','MAY','IYUN','IYUL','AVGUST','SENTYABR','OKTYABR','NOYABR','DEKABR'];
+  const HAF=['Yakshanba','Dushanba','Seshanba','Chorshanba','Payshanba','Juma','Shanba'];
+  const ser=d=>{const[y,m,dd]=d.split('-').map(Number);return Date.UTC(y,m-1,dd)/864e5+25569};
+  const DC=d=>d?{t:'n',v:ser(d)}:'', F=f=>({t:'n',f});
+  const T=today(), sub=`Yuklandi: ${dmy(T)} · summalar so'mda`;
+  const oyNm=k=>{const[y,m]=k.split('-').map(Number);return `${OY[m-1]} ${y}`};
+
+  // 1) XULOSA — oylar bo'yicha
+  const xr=[], used=new Set(), sheets=[];
+  ms.forEach(k=>{const tu=D.tushum.filter(r=>ym(r.sana)===k).reduce((a,r)=>a+ +r.summa,0), ra=D.rasxod.filter(r=>ym(r.sana)===k).reduce((a,r)=>a+ +r.summa,0);
+    const R=xr.length+4; xr.push({v:[oyNm(k),tu,ra,F(`B${R}-C${R}`),F(`MAX(0,D${R})*${foiz}`)],cellFont:tu-ra<0?{3:XC.redf}:undefined});});
+  const xe=xr.length+3; if(xr.length) xr.push({k:'tot',v:['JAMI',F(`SUM(B4:B${xe})`),F(`SUM(C4:C${xe})`),F(`SUM(D4:D${xe})`),F(`SUM(E4:E${xe})`)]});
+  const exB=(D.exson||[]).reduce((a,r)=>a+ +r.summa,0);
+  if(xr.length){const tr=xe+1; xr.push({k:'sec',v:['🤲 Exson'],fill:XC.sec[5]},{k:'sub',v:['Hisoblangan exson',null,null,null,F(`E${tr}`)]},{k:'sub',v:['Berildi',null,null,null,exB]},{k:'sub',v:['Qolgan exson',null,null,null,F(`E${tr}-E${tr+3}`)]});}
+  sheets.push(['XULOSA',xSheet(`${nom} — umumiy xulosa`,sub,[{h:'OY',t:'txt',min:16},{h:'DAROMAD',t:'uzs'},{h:'RASXOD',t:'uzs'},{h:'OSTATKA',t:'uzs'},{h:`EXSON ${Math.round(foiz*100)}%`,t:'uzs'}],xr)]);
+
+  // 2) Har oy alohida varaq
+  ms.forEach((k,mi)=>{
+    const[y,m]=k.split('-').map(Number), n=new Date(Date.UTC(y,m,0)).getUTCDate(), rows=[];
+    for(let d=1;d<=n;d++){const ds=`${k}-${String(d).padStart(2,'0')}`; if(ds>T) break;
+      const tu=D.tushum.filter(r=>r.sana===ds).reduce((a,r)=>a+ +r.summa,0), rs=D.rasxod.filter(r=>r.sana===ds), rsum=rs.reduce((a,r)=>a+ +r.summa,0);
+      const sabab=rs.map(r=>{const kg=(r.kimga||'').trim(), iz=(r.izoh||'').trim(); const nm=(iz&&kg&&iz.toUpperCase().includes(kg.toUpperCase())?iz:[kg,iz].filter(Boolean).join(' '))||r.turi||''; return `${nm.toUpperCase()} — ${fmt(r.summa)}`}).join('\n');
+      const R=rows.length+4, wd=new Date(Date.UTC(y,m-1,d)).getUTCDay();
+      rows.push({v:[DC(ds),HAF[wd],tu,rsum,F(`C${R}-D${R}`),sabab],
+        cellFill:rsum>tu?{3:XC.red,4:XC.red}:undefined, cellFont:Object.assign({},tu?{}:{2:XC.muted},rsum?{}:{3:XC.muted},rsum>tu?{4:XC.redf}:{}), fill:wd===0?'FFF8E6':undefined});}
+    const e=rows.length+3, tr=e+1;
+    rows.push({k:'tot',v:['JAMI','',F(`SUM(C4:C${e})`),F(`SUM(D4:D${e})`),F(`C${tr}-D${tr}`),`${rows.length} kun`]});
+    rows.push({k:'sec',v:['📊 Oylik yakun'],fill:XC.sec[3]},
+      {k:'sub',v:['OYLIK DAROMAD JAMI','',F(`C${tr}`),null,null,'']},{k:'sub',v:['RASXOD JAMI','',null,F(`D${tr}`),null,'']},
+      {k:'sub',v:['OSTATKA','',null,null,F(`E${tr}`),'']},{k:'sub',v:[`EXSON ${Math.round(foiz*100)}%`,'',null,null,F(`MAX(0,E${tr})*${foiz}`),"sof foydadan"]});
+    const byT={}; D.rasxod.filter(r=>ym(r.sana)===k).forEach(r=>{const t=r.turi||'BOSHQA';byT[t]=(byT[t]||0)+ +r.summa});
+    const tl=Object.entries(byT).sort((a,b)=>b[1]-a[1]);
+    if(tl.length){rows.push({k:'sec',v:['🧾 Rasxod turlari bo\'yicha'],fill:XC.sec[2]}); tl.forEach(([t,s])=>rows.push({v:[t,'',null,s,null,''],cellFill:TCOL[t]?{0:TCOL[t].replace('#','').toUpperCase()}:undefined}));}
+    let nm=OY[m-1]; if(used.has(nm)) nm+=' '+y; used.add(nm);
+    sheets.push([nm,xSheet(`${nom} — ${oyNm(k)}`,sub,[{h:'SANA',t:'date',min:12},{h:'KUN',t:'txt'},{h:'DAROMAD',t:'uzs'},{h:'RASXOD',t:'uzs'},{h:'QOLDIQ',t:'uzs'},{h:'SABAB',t:'txt',wrap:true,max:60,min:30}],rows)]);
+  });
+
+  // 3) QARZLAR
+  const qr=[], all=D.yet.map(y=>({y,st:qStat(y)})), on=all.filter(x=>!x.st.done), off=all.filter(x=>x.st.done);
+  const qrow=({y,st})=>{const R=qr.length+4, ol=D.qarzOl.filter(q=>q.kim===y.kim);
+    const nz=v=>+v?+v:null; qr.push({v:[y.kim,st.uzs.b,st.uzs.o,st.uzs.t,F(`B${R}+C${R}-D${R}`),nz(st.usd.b),nz(st.usd.o),nz(st.usd.t),st.usd.b||st.usd.o||st.usd.t?F(`F${R}+G${R}-H${R}`):null,DC(st.last),ol.map(q=>`${q.nima||'MOL'} — ${q.valyuta==='usd'?fmtU(q.summa):fmt(q.summa)}`).join('\n')],
+      cellFill:Object.assign({},st.uzs.q>0?{4:XC.red}:{},st.usd.q>0?{8:XC.red}:{})});};
+  const qs=[];
+  if(on.length){qr.push({k:'sec',v:[`🔴 Qarzi borlar — ${on.length} ta`],fill:XC.sec[2]}); const a=qr.length+4; on.forEach(qrow); qs.push([a,qr.length+3]);}
+  if(off.length){qr.push({k:'sec',v:[`✅ Qarzi yopilganlar — ${off.length} ta`],fill:XC.sec[5]}); const a=qr.length+4; off.forEach(qrow); qs.push([a,qr.length+3]);}
+  const qsum=c=>F(qs.map(([a,b])=>`SUM(${c}${a}:${c}${b})`).join('+')||'0');
+  if(qs.length) qr.push({k:'tot',v:['JAMI',...'BCDEFGHI'.split('').map(qsum),null,'']});
+  sheets.push(['QARZLAR',xSheet(`${nom} — qarzga olingan ximiya va ehtiyot qismlar`,sub,[{h:'SOTUVCHI',t:'txt',min:18},{h:"BOSHL. QARZ so'm",t:'uzs'},{h:"OLINDI so'm",t:'uzs'},{h:"TO'LANDI so'm",t:'uzs'},{h:"QOLDIQ so'm",t:'uzs'},{h:'BOSHL. QARZ $',t:'usd'},{h:'OLINDI $',t:'usd'},{h:"TO'LANDI $",t:'usd'},{h:'QOLDIQ $',t:'usd'},{h:'OXIRGI SANA',t:'date'},{h:'NIMALAR OLINGAN',t:'txt',wrap:true,max:50,min:24}],qr)]);
+
+  // 4) Har sherik — alohida varaq
+  (D.sher||[]).forEach((x,si)=>{const c=shCalc(x.ism), rows=[], rng=[];
+    const hrow=h=>{const R=rows.length+4; const nz=v=>+v?+v:null; rows.push({v:[h.xaqdor,nz(h.o.uzs),nz(h.o.usd),nz(h.t.uzs),nz(h.t.usd),h.o.uzs||h.t.uzs?F(`B${R}-D${R}`):null,h.o.usd||h.t.usd?F(`C${R}-E${R}`):null,h.izoh.join(', '),DC(h.last)],cellFill:Object.assign({},h.q.uzs>0?{5:XC.red}:{},h.q.usd>0?{6:XC.red}:{})});};
+    if(c.act.length){rows.push({k:'sec',v:[`🤝 Qarzdorlik — ${c.act.length} ta haqdor`],fill:XC.sec[si%XC.sec.length]}); const a=rows.length+4; c.act.forEach(hrow); rng.push([a,rows.length+3]);}
+    if(c.done.length){rows.push({k:'sec',v:[`✅ Qarzdan qutilganlar — ${c.done.length} ta`],fill:XC.sec[5]}); const a=rows.length+4; c.done.forEach(hrow); rng.push([a,rows.length+3]);}
+    const s=col=>F(rng.map(([a,b])=>`SUM(${col}${a}:${col}${b})`).join('+')||'0');
+    if(rng.length) rows.push({k:'tot',v:['JAMI QARZ',s('B'),s('C'),s('D'),s('E'),s('F'),s('G'),'','']});
+    const sp=c.R.filter(r=>r.turi==='shaxsiy'||r.turi==='shaxsiy_qaytar').sort((a,b)=>a.sana<b.sana?-1:1);
+    if(sp.length){rows.push({k:'sec',v:['💼 Shaxsiy pul (o\'z cho\'ntagidan)'],fill:XC.sec[3]});
+      sp.forEach(r=>{const q=r.turi==='shaxsiy_qaytar', sg=q?-1:1, u=r.valyuta==='usd';
+        rows.push({v:[q?'Qaytarib berildi':"Cho'ntagidan sarfladi",u?null:sg*r.summa,u?sg*r.summa:null,null,null,null,null,r.izoh||'',DC(r.sana)],font:q?'0A7A4F':undefined});});
+      rows.push({k:'sub',v:['SHAXSIY PUL QOLDIG\'I',c.own.uzs,c.own.usd,null,null,null,null,'','']});}
+    if(!rows.length) rows.push({v:['Yozuv yo\'q','','','','','','','','']});
+    sheets.push([x.ism,xSheet(`${nom} — ${x.ism} (sherik qarzi)`,sub,[{h:'HAQDOR',t:'txt',min:20},{h:"OLINGAN so'm",t:'uzs'},{h:'OLINGAN $',t:'usd'},{h:"BERILGAN so'm",t:'uzs'},{h:'BERILGAN $',t:'usd'},{h:"QOLDIQ so'm",t:'uzs'},{h:'QOLDIQ $',t:'usd'},{h:'IZOH',t:'txt',wrap:true,max:40,min:16},{h:'SANA',t:'date'}],rows)]);
+  });
+
+  const nmUsed=new Set();
+  sheets.forEach(([nm,ws])=>{let s=String(nm).replace(/[\\\/\?\*\[\]:]/g,' ').slice(0,31); while(nmUsed.has(s)) s=s.slice(0,28)+' '+nmUsed.size; nmUsed.add(s); XLSX.utils.book_append_sheet(wb,ws,s);});
+  XLSX.writeFile(wb,`SAMMOYKA KUNLIK XISOB KITOB ${T.split('-').reverse().join('.')}.xlsx`);
 }
 
 /* ---------- SUMMA KO'RINISHI (212 -> 212 000 so'm) ---------- */
