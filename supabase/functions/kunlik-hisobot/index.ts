@@ -21,7 +21,13 @@ Deno.serve(async (req) => {
     const { data: cfg } = await db.from('bot_sozlama').select('kalit,qiymat');
     const C = Object.fromEntries((cfg || []).map((r: any) => [r.kalit, r.qiymat]));
     if (!C.cron_key || req.headers.get('x-cron-key') !== C.cron_key) return new Response('ruxsat yo\'q', { status: 401 });
-    const token = Deno.env.get('TG_TOKEN'); if (!token) return new Response('TG_TOKEN yo\'q', { status: 500 });
+    const token = Deno.env.get('TG_TOKEN') || C.tg_token; if (!token) return new Response('TG_TOKEN yo\'q', { status: 500 });
+    // /start bosganlarni avtomatik qo'shish (chat_id ro'yxati, vergul bilan)
+    const ids = new Set(String(C.chat_id || '').split(',').map((x) => x.trim()).filter((x) => x && x !== token.split(':')[0]));
+    const up = await (await fetch(`https://api.telegram.org/bot${token}/getUpdates`)).json().catch(() => ({}));
+    for (const u of up.result || []) { const ch = (u.message || u.my_chat_member)?.chat; if (ch && ch.type === 'private' && /^\/start/.test(u.message?.text || '')) ids.add(String(ch.id)); }
+    const idStr = [...ids].join(',');
+    if (idStr !== (C.chat_id || '')) await db.from('bot_sozlama').upsert({ kalit: 'chat_id', qiymat: idStr });
     const body = await req.json().catch(() => ({}));
     const now = new Date(Date.now() + 5 * 3600e3), day: string = body.sana || now.toISOString().slice(0, 10), k = day.slice(0, 7);
 
@@ -54,10 +60,15 @@ Deno.serve(async (req) => {
     if (qN) L.push(`📦 Qarzlarimiz: ${[qU ? fmt(qU) + " so'm" : '', qD ? fmtU(qD) : ''].filter(Boolean).join(' + ')} (${qN} ta sotuvchi)`);
     L.push('', `🔗 https://compmiruz-web.github.io/MILLIY-MOYKA/`);
 
-    const chat = body.chat_id || C.chat_id;
-    const r = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, { method: 'POST', headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ chat_id: chat, text: L.join('\n'), parse_mode: 'HTML', disable_web_page_preview: true }) });
-    const j = await r.json();
-    return new Response(JSON.stringify({ ok: j.ok, tg: j.ok ? undefined : j }), { status: j.ok ? 200 : 502, headers: { 'content-type': 'application/json' } });
+    const chats = body.chat_id ? [String(body.chat_id)] : [...ids];
+    if (!chats.length) return new Response(JSON.stringify({ ok: false, sabab: "Hech kim botga /start bosmagan" }), { status: 409, headers: { 'content-type': 'application/json' } });
+    const res: any[] = [];
+    for (const chat of chats) {
+      const r = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, { method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ chat_id: chat, text: L.join('\n'), parse_mode: 'HTML', disable_web_page_preview: true }) });
+      const j = await r.json(); res.push({ chat, ok: j.ok, err: j.ok ? undefined : j.description });
+    }
+    const ok = res.some((x) => x.ok);
+    return new Response(JSON.stringify({ ok, res }), { status: ok ? 200 : 502, headers: { 'content-type': 'application/json' } });
   } catch (e) { return new Response(String((e as Error).message || e), { status: 500 }); }
 });
